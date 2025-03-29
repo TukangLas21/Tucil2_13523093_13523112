@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<ScrollPane fitToHeight="true" fitToWidth="true" prefHeight="640.0" prefWidth="720.0" xmlns="http://javafx.com/javafx/23" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.tukanglas.PrimaryController">
+   <content>
+      <VBox alignment="TOP_CENTER" spacing="20.0">
+         <children>
+            <HBox prefHeight="31.0" prefWidth="598.0" spacing="10.0">
+               <children>
+                  <Button fx:id="exitButton" mnemonicParsing="false" onAction="#exit" prefHeight="25.0" prefWidth="55.0" text="Exit" />
+                  <Button fx:id="resetButton" mnemonicParsing="false" onAction="#reset" text="Reset" />
+               </children>
+            </HBox>
+            <HBox alignment="CENTER" prefHeight="278.0" prefWidth="598.0" spacing="10.0">
+               <children>
+                  <HBox spacing="10.0">
+                     <children>
+                        <VBox alignment="TOP_CENTER" prefHeight="200.0" prefWidth="100.0" spacing="10.0">
+                           <children>
+                              <Label text="Input Image" />
+                              <VBox alignment="CENTER">
+                                 <children>
+                                    <ImageView fx:id="inputImageView" fitHeight="225.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true" />
+                                 </children>
+                              </VBox>
+                              <Button fx:id="selectInputImageButton" mnemonicParsing="false" onAction="#selectInputImage" text="Select image" />
+                              <VBox>
+                                 <children>
+                                    <HBox spacing="5.0">
+                                       <children>
+                                          <Label text="dimension:" />
+                                          <Label fx:id="inputImageDimensionLabel" text="text" />
+                                       </children>
+                                    </HBox>
+                                    <HBox spacing="5.0">
+                                       <children>
+                                          <Label text="size:" />
+                                          <Label fx:id="inputImageSizeLabel" text="text" />
+                                       </children>
+                                    </HBox>
+                                    <HBox spacing="5.0" />
+                                 </children>
+                              </VBox>
+                           </children>
+                        </VBox>
+                        <VBox alignment="TOP_CENTER" prefHeight="200.0" prefWidth="100.0" spacing="10.0">
+                           <children>
+                              <Label text="Compressed Image" />
+                              <VBox alignment="CENTER">
+                                 <children>
+                                    <ImageView fx:id="compressedImageView" fitHeight="225.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true" />
+                                 </children>
+                              </VBox>
+                              <Button fx:id="exportCompressedButton" mnemonicParsing="false" onAction="#exportCompressed" text="Export image" />
+                              <Button fx:id="exportGifButton" mnemonicParsing="false" onAction="#exportGif" text="Export GIF" />
+                              <VBox>
+                                 <children>
+                                    <HBox spacing="5.0">
+                                       <children>
+                                          <Label text="time:" />
+                                          <Label fx:id="compressionTimeLabel" text="text" />
+                                       </children>
+                                    </HBox>
+                                    <HBox spacing="5.0">
+                                       <children>
+                                          <Label text="size:" />
+                                          <Label fx:id="compressedSizeLabel" text="text" />
+                                       </children>
+                                    </HBox>
+                                    <HBox spacing="5.0">
+                                       <children>
+                                          <Label text="percentage:" />
+                                          <Label fx:id="compressionPercentageLabel" text="text" />
+                                       </children>
+                                    </HBox>
+                                    <HBox spacing="5.0">
+                                       <children>
+                                          <Label text="tree depth:" />
+                                          <Label fx:id="compressedTreeDepthLabel" text="text" />
+                                       </children>
+                                    </HBox>
+                                    <HBox spacing="5.0">
+                                       <children>
+                                          <Label text="node count:" />
+                                          <Label fx:id="compressedNodeCountLabel" text="text" />
+                                       </children>
+                                    </HBox>
+                                 </children>
+                              </VBox>
+                           </children>
+                        </VBox>
+                     </children>
+                  </HBox>
+                  <VBox prefHeight="552.0" prefWidth="234.0" spacing="20.0">
+                     <children>
+                        <VBox prefHeight="200.0" prefWidth="100.0" spacing="5.0">
+                           <children>
+                              <Label text="Error Measurement Methods and Threshold" />
+                              <VBox prefHeight="200.0" prefWidth="100.0" spacing="5.0">
+                                 <children>
+                                    <RadioButton fx:id="varianceButton" mnemonicParsing="false" onAction="#variance" text="Variance" />
+                                    <TextField fx:id="varianceThresholdTextField" onAction="#checkCompressButtonDisable" onKeyTyped="#checkCompressButtonDisable" promptText="Threshold" />
+                                 </children>
+                              </VBox>
+                              <VBox spacing="5.0">
+                                 <children>
+                                    <RadioButton fx:id="meanAbsoluteDeviationButton" mnemonicParsing="false" onAction="#meanAbsoluteDeviation" text="Mean Absolute Deviation (MAD)" />
+                                    <TextField fx:id="meanAbsoluteDeviationThresholdTextField" onAction="#checkCompressButtonDisable" onKeyTyped="#checkCompressButtonDisable" promptText="Threshold" />
+                                 </children>
+                              </VBox>
+                              <VBox spacing="5.0">
+                                 <children>
+                                    <RadioButton fx:id="maxPixelDifferenceButton" mnemonicParsing="false" onAction="#maxPixelDifference" text="Max Pixel Difference" />
+                                    <TextField fx:id="maxPixelDifferenceThresholdTextField" onAction="#checkCompressButtonDisable" onKeyTyped="#checkCompressButtonDisable" promptText="Threshold" />
+                                 </children>
+                              </VBox>
+                              <VBox spacing="5.0">
+                                 <children>
+                                    <RadioButton fx:id="entropyButton" mnemonicParsing="false" onAction="#entropy" text="Entropy" />
+                                    <TextField fx:id="entropyThresholdTextField" onAction="#checkCompressButtonDisable" onKeyTyped="#checkCompressButtonDisable" promptText="Threshold" />
+                                 </children>
+                              </VBox>
+                              <VBox spacing="5.0">
+                                 <children>
+                                    <RadioButton fx:id="structuralSimilarityIndexButton" mnemonicParsing="false" onAction="#structuralSimilarityIndex" text="Structural Similarity Index (SSIM)" />
+                                    <TextField fx:id="structuralSimilarityIndexThresholdTextField" onAction="#checkCompressButtonDisable" onKeyTyped="#checkCompressButtonDisable" promptText="Threshold" />
+                                 </children>
+                              </VBox>
+                           </children>
+                        </VBox>
+                        <VBox>
+                           <children>
+                              <Label text="Minimum Block Size" />
+                              <TextField fx:id="minimumBlockSizeTextField" onAction="#checkCompressButtonDisable" onKeyTyped="#checkCompressButtonDisable" />
+                           </children>
+                        </VBox>
+                        <VBox spacing="5.0">
+                           <children>
+                              <Label text="Compression Percentage" />
+                              <RadioButton fx:id="compressionPercentageActiveButton" mnemonicParsing="false" onAction="#compressionPercentageActive" text="Active" />
+                              <TextField fx:id="compressionPercentageTextField" disable="true" onAction="#compressionPercentageTextField" promptText="0 - 100" />
+                              <Slider fx:id="compressionPercentageSlider" blockIncrement="1.0" disable="true" minorTickCount="5" onDragDetected="#compressionPercentageSlider" onDragDone="#compressionPercentageSlider" onDragDropped="#compressionPercentageSlider" onDragEntered="#compressionPercentageSlider" onDragExited="#compressionPercentageSlider" onDragOver="#compressionPercentageSlider" onMouseDragEntered="#compressionPercentageSlider" onMouseDragExited="#compressionPercentageSlider" onMouseDragOver="#compressionPercentageSlider" onMouseDragReleased="#compressionPercentageSlider" onMouseDragged="#compressionPercentageSlider" showTickLabels="true" showTickMarks="true" />
+                           </children>
+                        </VBox>
+                        <HBox alignment="CENTER">
+                           <children>
+                              <VBox alignment="TOP_CENTER" spacing="5.0">
+                                 <children>
+                                    <Label fx:id="compressionErrorMessageLabel" text="Error message" textFill="#c81f1f" />
+                                    <Button fx:id="compressButton" mnemonicParsing="false" onAction="#compress" text="Compress" />
+                                 </children>
+                              </VBox>
+                           </children>
+                        </HBox>
+                     </children>
+                  </VBox>
+               </children>
+            </HBox>
+         </children>
+         <padding>
+            <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+         </padding>
+      </VBox>
+   </content>
+</ScrollPane>
