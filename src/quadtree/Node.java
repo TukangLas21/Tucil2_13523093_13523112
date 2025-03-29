@@ -1,3 +1,4 @@
+package quadtree;
 public class Node {
     int x, y; // Koordinat blok (piksel kiri atas)
     int width, height; // Ukuran blok
