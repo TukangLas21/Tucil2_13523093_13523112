@@ -1,5 +1,10 @@
 package com.tukanglas;
 
+import java.awt.Image;
+import javafx.embed.swing.SwingFXUtils;
+
+import quadtree.*;
+
 import java.io.File;
 import java.io.IOException;
 
@@ -103,6 +108,7 @@ public class PrimaryController {
     private File inputImageFile = null;
     private File compressedImageFile = null;
     private File compressedGifFile = null;
+    private Quadtree quadtree = null;
 
     // Initialize
     @FXML
@@ -174,6 +180,14 @@ public class PrimaryController {
         compressedNodeCountLabel.setText("");
         compressionErrorMessageLabel.setVisible(false);
 
+        // Reset radio buttons
+        errorMeasurementMethodsToggleGroup.selectToggle(null);
+        varianceButton.setSelected(false);
+        meanAbsoluteDeviationButton.setSelected(false);
+        maxPixelDifferenceButton.setSelected(false);
+        entropyButton.setSelected(false);
+        structuralSimilarityIndexButton.setSelected(false);
+
         inputImageFile = null;
         compressedImageFile = null;
         compressedGifFile = null;
@@ -223,9 +237,52 @@ public class PrimaryController {
             // compressionPercentageLabel.setText(...);
             // compressedTreeDepthLabel.setText(...);
             // compressedNodeCountLabel.setText(...);
-            compressedImageFile = inputImageFile; // Placeholder for the compressed image file
-            compressedImageView.setImage(new javafx.scene.image.Image(compressedImageFile.toURI().toString()));
-            compressionTimeLabel.setText("Compression Time: 0.0s"); // Placeholder for compression time
+
+            int minBlockSize = Integer.parseInt(minimumBlockSizeTextField.getText());
+            double threshold = 0.0;
+            if (varianceButton.isSelected()) {
+                threshold = Double.parseDouble(varianceThresholdTextField.getText());
+            } else if (meanAbsoluteDeviationButton.isSelected()) {
+                threshold = Double.parseDouble(meanAbsoluteDeviationThresholdTextField.getText());
+            } else if (maxPixelDifferenceButton.isSelected()) {
+                threshold = Integer.parseInt(maxPixelDifferenceThresholdTextField.getText());
+            } else if (entropyButton.isSelected()) {
+                threshold = Double.parseDouble(entropyThresholdTextField.getText());
+            } else if (structuralSimilarityIndexButton.isSelected()) {
+                threshold = Double.parseDouble(structuralSimilarityIndexThresholdTextField.getText());
+            }
+            String method;
+            if (varianceButton.isSelected()) {
+                method = "variance";
+            } else if (meanAbsoluteDeviationButton.isSelected()) {
+                method = "mad";
+            } else if (maxPixelDifferenceButton.isSelected()) {
+                method = "mpd";
+            } else if (entropyButton.isSelected()) {
+                method = "entropy";
+            } else if (structuralSimilarityIndexButton.isSelected()) {
+                method = "ssim";
+            } else {
+                method = null;
+            }
+            quadtree = new Quadtree(threshold, minBlockSize);
+
+            try {
+                quadtree.CreateQuadtree(ImageIO.read(inputImageFile), method); // Placeholder for error method
+                System.out.println("Quadtree created successfully.");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            // try {
+            //     ImageIO.write(quadtree.ImageFromQuadtree(), "png", compressedImageFile); // Placeholder for output file
+            // } catch (IOException e) {
+                //     e.printStackTrace();
+                // }
+                
+            compressedImageView.setImage(SwingFXUtils.toFXImage(quadtree.ImageFromQuadtree(), null)); // Placeholder for compressed image
+            System.out.println("Compressed image created successfully.");
+            compressionTimeLabel.setText("0.0s"); // Placeholder for compression time
         } else {
             compressionErrorMessageLabel.setStyle("-fx-text-fill: #c81f1f;");
             compressionErrorMessageLabel.setText("Please select an input image.");
@@ -248,7 +305,13 @@ public class PrimaryController {
         if (outputFile != null) {
             // Save the compressed image to the selected location
             try {
-                ImageIO.write(ImageIO.read(compressedImageFile), "png", outputFile);
+                // Assuming quadtree.ImageFromQuadtree() returns a BufferedImage
+                // and compressedImageFile is the file to save the image to
+                compressedImageFile = outputFile;
+                ImageIO.write(quadtree.ImageFromQuadtree(), "png", compressedImageFile); // Placeholder for output file
+                // Use SwingFXUtils to convert the image to a JavaFX Image
+                // and then write it to the output file
+                // ImageIO.write(SwingFXUtils.fromFXImage(compressedImageView.getImage(), null), "png", compressedImageFile);
                 compressionErrorMessageLabel.setStyle("-fx-text-fill: #1fc81f;");
                 compressionErrorMessageLabel.setText("Compressed image exported successfully.");
                 compressionErrorMessageLabel.setVisible(true);
