@@ -11,22 +11,12 @@ public class Quadtree {
     }
 
     // Placeholder CreateTree dan CreateNodes
-    public void CreateTree(int x, int y, int size, int[][] image) {
-        this.root = CreateNodes(x, y, size, image); // Buat node root
-        // Implementasi untuk membagi node menjadi anak-anaknya
-        // Misalnya, jika ukuran > threshold, bagi menjadi 4 anak
-        if (size > threshold) {
-            int newSize = size / 2;
-            root.children = new Node[4];
-            root.children[0] = CreateNodes(x, y, newSize, image); // NW
-            root.children[1] = CreateNodes(x + newSize, y, newSize, image); // NE
-            root.children[2] = CreateNodes(x, y + newSize, newSize, image); // SW
-            root.children[3] = CreateNodes(x + newSize, y + newSize, newSize, image); // SE
-        }
+    public void CreateTree(int x, int y, int[][][] imageData) {
+
     }
 
-    public Node CreateNodes(int x, int y, int size, int[][] image) {
-        return new Node(x, y, size); // Placeholder
+    public Node CreateNodes(int x, int y, int width, int height, int[][][] imageData) {
+        return new Node(x, y, width, height, imageData); // Placeholder
     }
 
 }
