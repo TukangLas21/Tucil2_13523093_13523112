@@ -1,3 +1,4 @@
+package quadtree;
 
 public class Quadtree {
     public Node root;
