@@ -118,4 +118,50 @@ public class Quadtree {
             }
         }
     }
+
+    public static double calcAverage(Node QTreeNode) {
+        double averageRed, averageGreen, averageBlue;
+        double average = 0;
+
+        averageRed = QTreeNode.getAverageRed();
+        averageGreen = QTreeNode.getAverageGreen();
+        averageBlue = QTreeNode.getAverageBlue();
+
+        average = (averageRed + averageGreen + averageBlue) / 3.0;
+
+        return average;
+    }
+
+    // Variansi
+    public static double calcVariance(Node QTreeNode) {
+        double varRed = QTreeNode.getVarianceRed();
+        double varGreen = QTreeNode.getVarianceGreen();
+        double varBlue = QTreeNode.getVarianceBlue();
+
+        return (varRed + varGreen + varBlue) / 3.0;
+    }
+
+    public static double calcMAD(Node QTreeNode) {
+        double MADRed = QTreeNode.getMADRed();
+        double MADGreen = QTreeNode.getMADGreen();
+        double MADBlue = QTreeNode.getMADBlue();
+
+        return (MADRed + MADGreen + MADBlue) / 3.0;
+    }
+
+    public static double calcMaxDiff(Node QTreeNode) {
+        double maxDiffRed = QTreeNode.getMaxDiffRed();
+        double maxDiffGreen = QTreeNode.getMaxDiffGreen();
+        double maxDiffBlue = QTreeNode.getMaxDiffBlue();
+
+        return (maxDiffRed + maxDiffGreen + maxDiffBlue) / 3.0;
+    }
+
+    public static double calcEntropy(Node QTreeNode) {
+        double entropyRed = QTreeNode.getEntropyRed();
+        double entropyGreen = QTreeNode.getEntropyGreen();
+        double entropyBlue = QTreeNode.getEntropyBlue();
+
+        return (entropyRed + entropyGreen + entropyBlue) / 3.0;
+    }
 }
