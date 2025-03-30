@@ -5,6 +5,8 @@ public class Quadtree {
     public double threshold; 
     public int min_size;
     public BufferedImage imageData;
+    private long nodeCount = 0; // Counter for the number of nodes created
+    private int depth = 0; // Variable to track the maximum level of the quadtree
 
     public Quadtree(double threshold, int min_size) {
         this.root = null; 
@@ -13,11 +15,19 @@ public class Quadtree {
         this.imageData = null; 
     }
 
+    public long getNodeCount() {
+        return nodeCount; 
+    }
+
+    public int getDepth() {
+        return depth; 
+    }
+
     public void CreateQuadtree(BufferedImage imageData, String errorMethod) {
         this.imageData = imageData; 
         int width = imageData.getWidth(); 
         int height = imageData.getHeight(); 
-        this.root = new Node(0, 0, width, height, imageData.getRGB(0, 0)); 
+        this.root = new Node(0, 0, width, height, imageData.getRGB(0, 0), 0); 
 
         // // Debugging
         // int leftHalfWidth = (root.width + 1) / 2;
@@ -32,12 +42,12 @@ public class Quadtree {
         // System.out.println("Err: " + topRightError + ", " + bottomLeftError + ", " + bottomRightError);
 
 
-        BuildQuadTree(root, imageData, errorMethod, calcError(root.x, root.y, root.width, root.height, errorMethod)); // Menghitung error untuk node root
+        BuildQuadTree(root, imageData, errorMethod, calcError(root.x, root.y, root.width, root.height, errorMethod), 1); // Menghitung error untuk node root
     }
 
 
     // Helper method to build the quadtree recursively
-    private void BuildQuadTree(Node node, BufferedImage imageData, String errorMethod, double error) {
+    private void BuildQuadTree(Node node, BufferedImage imageData, String errorMethod, double error, int level) {
         
         if (node == null) {
             return; 
@@ -50,6 +60,10 @@ public class Quadtree {
         }
         if (error < threshold) {
             return; 
+        }
+
+        if (level > depth) {
+            depth = level; 
         }
         // System.out.println("BuildQuadTree: " + node.x + ", " + node.y + ", " + node.width + ", " + node.height + ", " + node.argb);
 
@@ -80,31 +94,32 @@ public class Quadtree {
         int avgGreen = (int) getAverage(node.x, node.y, leftHalfWidth, topHalfHeight, "g");
         int avgBlue = (int) getAverage(node.x, node.y, leftHalfWidth, topHalfHeight, "b");
         int argb = (0xFF << 24) | (avgRed << 16) | (avgGreen << 8) | avgBlue; // Menggunakan alpha 255
-        node.children[0] = new Node(node.x, node.y, leftHalfWidth, topHalfHeight, argb); // Kiri Atas
+        node.children[0] = new Node(node.x, node.y, leftHalfWidth, topHalfHeight, argb, level); // Kiri Atas
 
         avgRed = (int) getAverage(node.x + leftHalfWidth, node.y, rightHalfWidth, topHalfHeight, "r");
         avgGreen = (int) getAverage(node.x + leftHalfWidth, node.y, rightHalfWidth, topHalfHeight, "g");
         avgBlue = (int) getAverage(node.x + leftHalfWidth, node.y, rightHalfWidth, topHalfHeight, "b");
         argb = (0xFF << 24) | (avgRed << 16) | (avgGreen << 8) | avgBlue; // Menggunakan alpha 255
-        node.children[1] = new Node(node.x + leftHalfWidth, node.y, rightHalfWidth, topHalfHeight, argb); // Kanan Atas
+        node.children[1] = new Node(node.x + leftHalfWidth, node.y, rightHalfWidth, topHalfHeight, argb, level); // Kanan Atas
 
         avgRed = (int) getAverage(node.x, node.y + topHalfHeight, leftHalfWidth, bottomHalfHeight, "r");
         avgGreen = (int) getAverage(node.x, node.y + topHalfHeight, leftHalfWidth, bottomHalfHeight, "g");
         avgBlue = (int) getAverage(node.x, node.y + topHalfHeight, leftHalfWidth, bottomHalfHeight, "b");
         argb = (0xFF << 24) | (avgRed << 16) | (avgGreen << 8) | avgBlue; // Menggunakan alpha 255
-        node.children[2] = new Node(node.x, node.y + topHalfHeight, leftHalfWidth, bottomHalfHeight, argb); // Kiri Bawah
+        node.children[2] = new Node(node.x, node.y + topHalfHeight, leftHalfWidth, bottomHalfHeight, argb, level); // Kiri Bawah
 
         avgRed = (int) getAverage(node.x + leftHalfWidth, node.y + topHalfHeight, rightHalfWidth, bottomHalfHeight, "r");
         avgGreen = (int) getAverage(node.x + leftHalfWidth, node.y + topHalfHeight, rightHalfWidth, bottomHalfHeight, "g");
         avgBlue = (int) getAverage(node.x + leftHalfWidth, node.y + topHalfHeight, rightHalfWidth, bottomHalfHeight, "b");
         argb = (0xFF << 24) | (avgRed << 16) | (avgGreen << 8) | avgBlue; // Menggunakan alpha 255
-        node.children[3] = new Node(node.x + leftHalfWidth, node.y + topHalfHeight, rightHalfWidth, bottomHalfHeight, argb); // Kanan Bawah
+        node.children[3] = new Node(node.x + leftHalfWidth, node.y + topHalfHeight, rightHalfWidth, bottomHalfHeight, argb, level); // Kanan Bawah
         
         
 
         for (int i = 0; i < 4; i++) {
             if (node.children[i] != null) {
-                BuildQuadTree(node.children[i], imageData, errorMethod, errors[i]); 
+                BuildQuadTree(node.children[i], imageData, errorMethod, errors[i], level + 1);
+                nodeCount++;
             }
         }
     }
