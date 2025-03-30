@@ -6,7 +6,7 @@ public class Quadtree {
     public int min_size;
     public BufferedImage imageData;
 
-    public Quadtree(int threshold, int min_size) {
+    public Quadtree(double threshold, int min_size) {
         this.root = null; 
         this.threshold = threshold; 
         this.min_size = min_size; 
@@ -18,82 +18,94 @@ public class Quadtree {
         int width = imageData.getWidth(); 
         int height = imageData.getHeight(); 
         this.root = new Node(0, 0, width, height, imageData.getRGB(0, 0)); 
-        BuildQuadTree(root, imageData, errorMethod); 
+
+        // // Debugging
+        // int leftHalfWidth = (root.width + 1) / 2;
+        // int topHalfHeight = (root.height + 1) / 2;
+        // int rightHalfWidth = root.width - leftHalfWidth;
+        // int bottomHalfHeight = root.height - topHalfHeight;
+        // double topRightError = calcVariance(leftHalfWidth, root.y, rightHalfWidth, topHalfHeight);
+        // double bottomLeftError = calcVariance(root.x, topHalfHeight, leftHalfWidth, bottomHalfHeight);
+        // double bottomRightError = calcVariance(leftHalfWidth, topHalfHeight, rightHalfWidth, bottomHalfHeight);
+        // System.out.println("Root: " + root.x + ", " + root.y + ", " + root.width + ", " + root.height + ", " + root.argb);
+        // System.out.println("Dim: " + leftHalfWidth + ", " + topHalfHeight + ", " + rightHalfWidth + ", " + bottomHalfHeight);
+        // System.out.println("Err: " + topRightError + ", " + bottomLeftError + ", " + bottomRightError);
+
+
+        BuildQuadTree(root, imageData, errorMethod, calcError(root.x, root.y, root.width, root.height, errorMethod)); // Menghitung error untuk node root
     }
 
-    // public Node CreateNodes(int x, int y, int width, int height, int[][][] imageData) {
-    //     return new Node(x, y, width, height, imageData); // Placeholder
-    // }
 
-    private void BuildQuadTree(Node node, BufferedImage imageData, String errorMethod) {
-
+    // Helper method to build the quadtree recursively
+    private void BuildQuadTree(Node node, BufferedImage imageData, String errorMethod, double error) {
+        
         if (node == null) {
             return; 
         }
         if (node.width <= 1 && node.height <= 1) {
             return; 
         }
+        if ((node.width/2 * node.height/2) < min_size) {
+            return; 
+        }
+        if (error < threshold) {
+            return; 
+        }
+        // System.out.println("BuildQuadTree: " + node.x + ", " + node.y + ", " + node.width + ", " + node.height + ", " + node.argb);
 
         int leftHalfWidth = (node.width + 1) / 2;
         int topHalfHeight = (node.height + 1) / 2;
         int rightHalfWidth = node.width - leftHalfWidth;
         int bottomHalfHeight = node.height - topHalfHeight;
 
-        double topLeftError = 0;
-        double topRightError = 0;
-        double bottomLeftError = 0;
-        double bottomRightError = 0;
+        double errors[] = new double[4];
 
-        switch (errorMethod) {
-            case "variance" -> {
-                // TODO: Implementasi error variance
-            }
-            case "mad" -> {
-                // TODO: Implementasi error mean absolute deviation
-            }
-            case "mpd" -> {
-                // TODO: Implementasi error mean pixel difference
-            }
-            case "entropy" -> {
-                // TODO: Implementasi error entropy
-            }
-            case "ssim" -> {
-                // TODO: Implementasi error structural similarity index
-            }
-            default -> {
-            }
+        for (int i = 0; i < 4; i++) {
+            errors[i] = Double.MAX_VALUE;
         }
+
+        errors[0] = calcError(node.x, node.y, leftHalfWidth, topHalfHeight, errorMethod); // Kiri Atas
+        errors[1] = calcError(node.x + leftHalfWidth, node.y, rightHalfWidth, topHalfHeight, errorMethod); // Kanan Atas
+        errors[2] = calcError(node.x, node.y + topHalfHeight, leftHalfWidth, bottomHalfHeight, errorMethod); // Kiri Bawah
+        errors[3] = calcError(node.x + leftHalfWidth, node.y + topHalfHeight, rightHalfWidth, bottomHalfHeight, errorMethod); // Kanan Bawah
+
+        // System.out.println("Error: " + topLeftError + ", " + topRightError + ", " + bottomLeftError + ", " + bottomRightError);
+        // System.out.println("Threshold: " + threshold);
         
-        // if (error < threshold || halfWidth * halfHeight < min_size) {
-        //     return;
-        // }
 
         // TODO: gunakan mean untuk mengisi warna node
         node.children = new Node[4];
-        
-        if (topHalfHeight * leftHalfWidth >= min_size && topLeftError > threshold) {
-            node.children[0] = new Node(node.x, node.y, leftHalfWidth, topHalfHeight, imageData.getRGB(node.x, node.y)); // Kiri Atas
-        } else {
-            node.children[0] = null; 
-        }
-        if (topHalfHeight * rightHalfWidth >= min_size && topRightError > threshold) {
-            node.children[1] = new Node(node.x + leftHalfWidth, node.y, rightHalfWidth, topHalfHeight, imageData.getRGB(node.x + leftHalfWidth, node.y)); // Kanan Atas
-        } else {
-            node.children[1] = null; 
-        }
-        if (bottomHalfHeight * leftHalfWidth >= min_size && bottomLeftError > threshold) {
-            node.children[2] = new Node(node.x, node.y + topHalfHeight, leftHalfWidth, bottomHalfHeight, imageData.getRGB(node.x, node.y + topHalfHeight)); // Kiri Bawah
-        } else {
-            node.children[2] = null; 
-        }
-        if (bottomHalfHeight * rightHalfWidth >= min_size && bottomRightError > threshold) {
-            node.children[3] = new Node(node.x + leftHalfWidth, node.y + topHalfHeight, rightHalfWidth, bottomHalfHeight, imageData.getRGB(node.x + leftHalfWidth, node.y + topHalfHeight)); // Kanan Bawah
-        } else {
-            node.children[3] = null; 
-        }
 
-        for (Node child : node.children) {
-            BuildQuadTree(child, imageData, errorMethod);
+        int avgRed = (int) getAverage(node.x, node.y, leftHalfWidth, topHalfHeight, "r");
+        int avgGreen = (int) getAverage(node.x, node.y, leftHalfWidth, topHalfHeight, "g");
+        int avgBlue = (int) getAverage(node.x, node.y, leftHalfWidth, topHalfHeight, "b");
+        int argb = (0xFF << 24) | (avgRed << 16) | (avgGreen << 8) | avgBlue; // Menggunakan alpha 255
+        node.children[0] = new Node(node.x, node.y, leftHalfWidth, topHalfHeight, argb); // Kiri Atas
+
+        avgRed = (int) getAverage(node.x + leftHalfWidth, node.y, rightHalfWidth, topHalfHeight, "r");
+        avgGreen = (int) getAverage(node.x + leftHalfWidth, node.y, rightHalfWidth, topHalfHeight, "g");
+        avgBlue = (int) getAverage(node.x + leftHalfWidth, node.y, rightHalfWidth, topHalfHeight, "b");
+        argb = (0xFF << 24) | (avgRed << 16) | (avgGreen << 8) | avgBlue; // Menggunakan alpha 255
+        node.children[1] = new Node(node.x + leftHalfWidth, node.y, rightHalfWidth, topHalfHeight, argb); // Kanan Atas
+
+        avgRed = (int) getAverage(node.x, node.y + topHalfHeight, leftHalfWidth, bottomHalfHeight, "r");
+        avgGreen = (int) getAverage(node.x, node.y + topHalfHeight, leftHalfWidth, bottomHalfHeight, "g");
+        avgBlue = (int) getAverage(node.x, node.y + topHalfHeight, leftHalfWidth, bottomHalfHeight, "b");
+        argb = (0xFF << 24) | (avgRed << 16) | (avgGreen << 8) | avgBlue; // Menggunakan alpha 255
+        node.children[2] = new Node(node.x, node.y + topHalfHeight, leftHalfWidth, bottomHalfHeight, argb); // Kiri Bawah
+
+        avgRed = (int) getAverage(node.x + leftHalfWidth, node.y + topHalfHeight, rightHalfWidth, bottomHalfHeight, "r");
+        avgGreen = (int) getAverage(node.x + leftHalfWidth, node.y + topHalfHeight, rightHalfWidth, bottomHalfHeight, "g");
+        avgBlue = (int) getAverage(node.x + leftHalfWidth, node.y + topHalfHeight, rightHalfWidth, bottomHalfHeight, "b");
+        argb = (0xFF << 24) | (avgRed << 16) | (avgGreen << 8) | avgBlue; // Menggunakan alpha 255
+        node.children[3] = new Node(node.x + leftHalfWidth, node.y + topHalfHeight, rightHalfWidth, bottomHalfHeight, argb); // Kanan Bawah
+        
+        
+
+        for (int i = 0; i < 4; i++) {
+            if (node.children[i] != null) {
+                BuildQuadTree(node.children[i], imageData, errorMethod, errors[i]); 
+            }
         }
     }
 
@@ -119,49 +131,162 @@ public class Quadtree {
         }
     }
 
-    public static double calcAverage(Node QTreeNode) {
-        double averageRed, averageGreen, averageBlue;
-        double average = 0;
-
-        averageRed = QTreeNode.getAverageRed();
-        averageGreen = QTreeNode.getAverageGreen();
-        averageBlue = QTreeNode.getAverageBlue();
-
-        average = (averageRed + averageGreen + averageBlue) / 3.0;
-
-        return average;
+    public double calcError(int x, int y, int width, int height, String method) {
+        double error = 0;
+        switch (method) {
+            case "variance" -> error = calcVariance(x, y, width, height);
+            case "mad" -> error = calcMAD(x, y, width, height);
+            case "mpd" -> error = calcMPD(x, y, width, height);
+            case "entropy" -> error = calcEntropy(x, y, width, height);
+            // case "ssim" -> error = calcSSIM(x, y, width, height);
+            default -> {
+            }
+        }
+        return error;
     }
 
     // Variansi
-    public static double calcVariance(Node QTreeNode) {
-        double varRed = QTreeNode.getVarianceRed();
-        double varGreen = QTreeNode.getVarianceGreen();
-        double varBlue = QTreeNode.getVarianceBlue();
+    public double calcVariance(int x, int y, int width, int height) {
+        double varRed = getVariance(x, y, width, height, "r");
+        double varGreen = getVariance(x, y, width, height, "g");
+        double varBlue = getVariance(x, y, width, height, "b");
+        // double varAlpha = getVariance(x, y, width, height, "a");
 
         return (varRed + varGreen + varBlue) / 3.0;
     }
-
-    public static double calcMAD(Node QTreeNode) {
-        double MADRed = QTreeNode.getMADRed();
-        double MADGreen = QTreeNode.getMADGreen();
-        double MADBlue = QTreeNode.getMADBlue();
-
-        return (MADRed + MADGreen + MADBlue) / 3.0;
+    
+    // Mendapatkan nilai rata-rata setiap kanal
+    // TODO: optimasi menggunakan matriks nilai integral (mendapatkan nilai mean menjadi O(1) untuk tiap iterasi)
+    public double getAverage(int x, int y, int width, int height, String channel) {
+        double sum = 0;
+        for (int j = y; j < y + height; j++) {
+            for (int i = x; i < x + width; i++) {
+                switch (channel) {
+                    case "r" -> sum += (imageData.getRGB(i, j) >> 16) & 0xFF; // Mengambil nilai merah dari argb  
+                    case "g" -> sum += (imageData.getRGB(i, j) >> 8) & 0xFF; // Mengambil nilai hijau dari argb
+                    case "b" -> sum += imageData.getRGB(i, j) & 0xFF; // Mengambil nilai biru dari argb
+                    case "a" -> sum += (imageData.getRGB(i, j) >> 24) & 0xFF; // Mengambil nilai alpha dari argb
+                }
+            }
+        }
+        int length = width * height;
+        return sum / (length == 0 ? 1 : length); // Menghindari pembagian dengan nol
     }
 
-    public static double calcMaxDiff(Node QTreeNode) {
-        double maxDiffRed = QTreeNode.getMaxDiffRed();
-        double maxDiffGreen = QTreeNode.getMaxDiffGreen();
-        double maxDiffBlue = QTreeNode.getMaxDiffBlue();
 
-        return (maxDiffRed + maxDiffGreen + maxDiffBlue) / 3.0;
+    // Mendapatkan nilai variansi setiap kanal warna
+    // TODO: optimasi menggunakan matriks nilai integral (mendapatkan nilai mean menjadi O(1) untuk tiap iterasi)
+    public double getVariance(int x, int y, int width, int height, String channel) {
+        double avg = getAverage(x, y, width, height, channel);
+        double sum = 0;
+        for (int j = y; j < y + height; j++) {
+            for (int i = x; i < x + width; i++) {
+                switch (channel) {
+                    case "r" -> sum += Math.pow(((imageData.getRGB(i, j) >> 16) & 0xFF) - avg, 2); // Mengambil nilai merah dari argb
+                    case "g" -> sum += Math.pow(((imageData.getRGB(i, j) >> 8) & 0xFF) - avg, 2); // Mengambil nilai hijau dari argb
+                    case "b" -> sum += Math.pow((imageData.getRGB(i, j) & 0xFF) - avg, 2); // Mengambil nilai biru dari argb
+                    case "a" -> sum += Math.pow(((imageData.getRGB(i, j) >> 24) & 0xFF) - avg, 2); // Mengambil nilai alpha dari argb
+                }
+            }
+        }
+        int length = width * height;
+        return sum / (length == 0 ? 1 : length); // Menghindari pembagian dengan nol
     }
 
-    public static double calcEntropy(Node QTreeNode) {
-        double entropyRed = QTreeNode.getEntropyRed();
-        double entropyGreen = QTreeNode.getEntropyGreen();
-        double entropyBlue = QTreeNode.getEntropyBlue();
+    public double calcMAD(int x, int y, int width, int height) {
+        double madRed = getMAD(x, y, width, height, "r");
+        double madGreen = getMAD(x, y, width, height, "g");
+        double madBlue = getMAD(x, y, width, height, "b");
+        // double madAlpha = getMAD(x, y, width, height, "a");
+
+        return (madRed + madGreen + madBlue) / 3.0;
+    }
+
+    // Mendapatkan nilai MAD setiap kanal warna
+    // TODO: optimasi menggunakan matriks nilai integral (mendapatkan nilai mean menjadi O(1) untuk tiap iterasi)
+    public double getMAD(int x, int y, int width, int height, String channel) {
+        double avg = getAverage(x, y, width, height, channel);
+        double sum = 0;
+        for (int j = y; j < y + height; j++) {
+            for (int i = x; i < x + width; i++) {
+                switch (channel) {
+                    case "r" -> sum += Math.abs(((imageData.getRGB(i, j) >> 16) & 0xFF) - avg);
+                    case "g" -> sum += Math.abs(((imageData.getRGB(i, j) >> 8) & 0xFF) - avg);
+                    case "b" -> sum += Math.abs((imageData.getRGB(i, j) & 0xFF) - avg);
+                    case "a" -> sum += Math.abs(((imageData.getRGB(i, j) >> 24) & 0xFF) - avg);
+                }
+            }
+        }
+        int length = width * height;
+        return sum / (length == 0 ? 1 : length);
+    }
+
+    public double calcMPD(int x, int y, int width, int height) {
+        double mpdRed = getMPD(x, y, width, height, "r");
+        double mpdGreen = getMPD(x, y, width, height, "g");
+        double mpdBlue = getMPD(x, y, width, height, "b");
+        // double mpdAlpha = getMPD(x, y, width, height, "a");
+
+        return (mpdRed + mpdGreen + mpdBlue) / 3.0;
+    }
+
+    // TODO: optimasi menggunakan quadtree untuk menghitung min dan max tiap blok (O(n^2))
+    public double getMPD(int x, int y, int width, int height, String channel) {
+        int min = Integer.MAX_VALUE;
+        int max = Integer.MIN_VALUE;
+        int value = 0;
+
+        for (int j = y; j < y + height; j++) {
+            for (int i = x; i < x + width; i++) {
+                switch (channel) {
+                    case "r" -> value = ((imageData.getRGB(i, j) >> 16) & 0xFF);
+                    case "g" -> value = ((imageData.getRGB(i, j) >> 8) & 0xFF);
+                    case "b" -> value = (imageData.getRGB(i, j) & 0xFF);
+                    case "a" -> value = ((imageData.getRGB(i, j) >> 24) & 0xFF);
+                }
+                if (value < min) {
+                    min = value;
+                }
+                if (value > max) {
+                    max = value;
+                }
+            }
+        }
+        return max - min;
+    }
+
+    public double calcEntropy(int x, int y, int width, int height) {
+        double entropyRed = getEntropy(x, y, width, height, "r");
+        double entropyGreen = getEntropy(x, y, width, height, "g");
+        double entropyBlue = getEntropy(x, y, width, height, "b");
+        // double entropyAlpha = getEntropy(x, y, width, height, "a");
 
         return (entropyRed + entropyGreen + entropyBlue) / 3.0;
+    }
+
+    public double getEntropy(int x, int y, int width, int height, String channel) {
+        double entropy = 0;
+        int[] histogram = new int[256];
+        int totalPixels = width * height;
+
+        for (int j = y; j < y + height; j++) {
+            for (int i = x; i < x + width; i++) {
+                switch (channel) {
+                    case "r" -> histogram[(imageData.getRGB(i, j) >> 16) & 0xFF]++;
+                    case "g" -> histogram[(imageData.getRGB(i, j) >> 8) & 0xFF]++;
+                    case "b" -> histogram[imageData.getRGB(i, j) & 0xFF]++;
+                    case "a" -> histogram[(imageData.getRGB(i, j) >> 24) & 0xFF]++;
+                }
+            }
+        }
+
+        for (int i = 0; i < histogram.length; i++) {
+            if (histogram[i] > 0) {
+                double p = (double) histogram[i] / totalPixels;
+                entropy -= p * Math.log(p) / Math.log(2);
+            }
+        }
+
+        return entropy;
     }
 }
