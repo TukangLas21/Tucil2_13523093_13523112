@@ -19,6 +19,42 @@ public class IOHandler {
         }
     }
 
+    // Mendapatkan file extension
+    public static String getExtension(String imagePath) {
+        int dotIndex = imagePath.lastIndexOf(".");
+        if (dotIndex > 0 && dotIndex < imagePath.length() - 1) {
+            return imagePath.substring(dotIndex + 1).toLowerCase();
+        }
+        return ""; // Return string kosong jika tidak ada extension
+    }
+
+    // Mendapatkan ukuran file
+    public static long getFileSize(String imagePath) {
+        File file = new File(imagePath);
+        if (file.exists()) {
+            return file.length(); // Mengembalikan ukuran file dalam byte
+        } else {
+            System.err.println("File not found: " + imagePath);
+            return -1; // Mengembalikan -1 jika file tidak ditemukan
+        }
+    }
+
+    // Save image pada output path
+    public static void saveImage(BufferedImage image, String outputPath, String extension) {
+        try {
+            File outputFile = new File(outputPath, "default." + extension);
+            // File outputFile = new File(outputPath);
+            if (!extension.isEmpty()) {
+                ImageIO.write(image, extension, outputFile);
+            } else {
+                // Jika tidak ada extension, gunakan default JPG
+                ImageIO.write(image, "jpg", outputFile);
+            }
+        } catch (IOException e) {
+            System.err.println("Error saving image: " + e.getMessage());
+        }
+    }
+
     // Dapatkan image data dalam bentuk array 3D
     // Array: [x][y][arrRGB]
     public static int[][][] getImageData(BufferedImage image) {
