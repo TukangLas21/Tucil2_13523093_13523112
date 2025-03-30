@@ -268,6 +268,9 @@ public class PrimaryController {
             compressionErrorMessageLabel.setStyle("-fx-text-fill:rgb(0, 0, 0);"); // Green color for success
             compressionErrorMessageLabel.setVisible(true);
 
+            // Start timer
+            long startTime = System.currentTimeMillis();
+
             try {
                 quadtree.CreateQuadtree(ImageIO.read(inputImageFile), method); // Placeholder for error method
                 System.out.println("Quadtree created successfully.");
@@ -275,13 +278,30 @@ public class PrimaryController {
                 e.printStackTrace();
             }
 
-            compressedImageView.setImage(SwingFXUtils.toFXImage(quadtree.ImageFromQuadtree(), null)); // Placeholder for compressed image
+            // Stop timer
+            long endTime = System.currentTimeMillis();
+            double compressionTime = (endTime - startTime);
+
+            compressedImageView.setImage(SwingFXUtils.toFXImage(quadtree.ImageFromQuadtree(), null)); 
 
             compressionErrorMessageLabel.setText("Success");
-            compressionErrorMessageLabel.setStyle("-fx-text-fill: #1fc81f;"); // Green color for success
+            compressionErrorMessageLabel.setStyle("-fx-text-fill: #1fc81f;"); 
             
             System.out.println("Compressed image created successfully.");
-            compressionTimeLabel.setText("0.0s"); // Placeholder for compression time
+
+            // Update labels with compression details
+            // compressedSizeLabel.setText(String.format("%.2f KB", (inputImageFile.length() / 1024.0))); // Placeholder for compressed size
+            compressionTimeLabel.setText(String.format("%.2f s", compressionTime)); // Placeholder for compression time
+            compressedSizeLabel.setText("0.0 KB"); // Placeholder for compressed size
+            compressedNodeCountLabel.setText(String.valueOf(quadtree.getNodeCount())); // Placeholder for node count
+            compressedTreeDepthLabel.setText(String.valueOf(quadtree.getDepth())); // Placeholder for tree depth
+
+            // Set enabled labels
+            compressionTimeLabel.setVisible(true);
+            compressedSizeLabel.setVisible(true);
+            compressionPercentageLabel.setVisible(true);
+            compressedTreeDepthLabel.setVisible(true);
+            compressedNodeCountLabel.setVisible(true);
         } else {
             compressionErrorMessageLabel.setStyle("-fx-text-fill: #c81f1f;");
             compressionErrorMessageLabel.setText("Please select an input image.");
