@@ -1,15 +1,11 @@
 package com.tukanglas;
 
-import java.awt.Image;
-import javafx.embed.swing.SwingFXUtils;
-
-import quadtree.*;
-
 import java.io.File;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -19,6 +15,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.image.ImageView;
 import javafx.stage.FileChooser;
+import quadtree.Quadtree;
 
 public class PrimaryController {
     // Exit button
@@ -267,6 +264,10 @@ public class PrimaryController {
             }
             quadtree = new Quadtree(threshold, minBlockSize);
 
+            compressionErrorMessageLabel.setText("Compressing...");
+            compressionErrorMessageLabel.setStyle("-fx-text-fill:rgb(0, 0, 0);"); // Green color for success
+            compressionErrorMessageLabel.setVisible(true);
+
             try {
                 quadtree.CreateQuadtree(ImageIO.read(inputImageFile), method); // Placeholder for error method
                 System.out.println("Quadtree created successfully.");
@@ -274,13 +275,11 @@ public class PrimaryController {
                 e.printStackTrace();
             }
 
-            // try {
-            //     ImageIO.write(quadtree.ImageFromQuadtree(), "png", compressedImageFile); // Placeholder for output file
-            // } catch (IOException e) {
-                //     e.printStackTrace();
-                // }
-                
             compressedImageView.setImage(SwingFXUtils.toFXImage(quadtree.ImageFromQuadtree(), null)); // Placeholder for compressed image
+
+            compressionErrorMessageLabel.setText("Success");
+            compressionErrorMessageLabel.setStyle("-fx-text-fill: #1fc81f;"); // Green color for success
+            
             System.out.println("Compressed image created successfully.");
             compressionTimeLabel.setText("0.0s"); // Placeholder for compression time
         } else {

@@ -135,9 +135,9 @@ public class Quadtree {
         double error = 0;
         switch (method) {
             case "variance" -> error = calcVariance(x, y, width, height);
-            // case "mad" -> error = calcMAD(x, y, width, height);
-            // case "mpd" -> error = calcMPD(x, y, width, height);
-            // case "entropy" -> error = calcEntropy(x, y, width, height);
+            case "mad" -> error = calcMAD(x, y, width, height);
+            case "mpd" -> error = calcMPD(x, y, width, height);
+            case "entropy" -> error = calcEntropy(x, y, width, height);
             // case "ssim" -> error = calcSSIM(x, y, width, height);
             default -> {
             }
@@ -156,10 +156,11 @@ public class Quadtree {
     }
     
     // Mendapatkan nilai rata-rata setiap kanal
+    // TODO: optimasi menggunakan matriks nilai integral (mendapatkan nilai mean menjadi O(1) untuk tiap iterasi)
     public double getAverage(int x, int y, int width, int height, String channel) {
         double sum = 0;
-        for (int i = x; i < x + width; i++) {
-            for (int j = y; j < y + height; j++) {
+        for (int j = y; j < y + height; j++) {
+            for (int i = x; i < x + width; i++) {
                 switch (channel) {
                     case "r" -> sum += (imageData.getRGB(i, j) >> 16) & 0xFF; // Mengambil nilai merah dari argb  
                     case "g" -> sum += (imageData.getRGB(i, j) >> 8) & 0xFF; // Mengambil nilai hijau dari argb
@@ -174,11 +175,12 @@ public class Quadtree {
 
 
     // Mendapatkan nilai variansi setiap kanal warna
+    // TODO: optimasi menggunakan matriks nilai integral (mendapatkan nilai mean menjadi O(1) untuk tiap iterasi)
     public double getVariance(int x, int y, int width, int height, String channel) {
         double avg = getAverage(x, y, width, height, channel);
         double sum = 0;
-        for (int i = x; i < x + width; i++) {
-            for (int j = y; j < y + height; j++) {
+        for (int j = y; j < y + height; j++) {
+            for (int i = x; i < x + width; i++) {
                 switch (channel) {
                     case "r" -> sum += Math.pow(((imageData.getRGB(i, j) >> 16) & 0xFF) - avg, 2); // Mengambil nilai merah dari argb
                     case "g" -> sum += Math.pow(((imageData.getRGB(i, j) >> 8) & 0xFF) - avg, 2); // Mengambil nilai hijau dari argb
@@ -189,6 +191,102 @@ public class Quadtree {
         }
         int length = width * height;
         return sum / (length == 0 ? 1 : length); // Menghindari pembagian dengan nol
-    }   
+    }
 
+    public double calcMAD(int x, int y, int width, int height) {
+        double madRed = getMAD(x, y, width, height, "r");
+        double madGreen = getMAD(x, y, width, height, "g");
+        double madBlue = getMAD(x, y, width, height, "b");
+        // double madAlpha = getMAD(x, y, width, height, "a");
+
+        return (madRed + madGreen + madBlue) / 3.0;
+    }
+
+    // Mendapatkan nilai MAD setiap kanal warna
+    // TODO: optimasi menggunakan matriks nilai integral (mendapatkan nilai mean menjadi O(1) untuk tiap iterasi)
+    public double getMAD(int x, int y, int width, int height, String channel) {
+        double avg = getAverage(x, y, width, height, channel);
+        double sum = 0;
+        for (int j = y; j < y + height; j++) {
+            for (int i = x; i < x + width; i++) {
+                switch (channel) {
+                    case "r" -> sum += Math.abs(((imageData.getRGB(i, j) >> 16) & 0xFF) - avg);
+                    case "g" -> sum += Math.abs(((imageData.getRGB(i, j) >> 8) & 0xFF) - avg);
+                    case "b" -> sum += Math.abs((imageData.getRGB(i, j) & 0xFF) - avg);
+                    case "a" -> sum += Math.abs(((imageData.getRGB(i, j) >> 24) & 0xFF) - avg);
+                }
+            }
+        }
+        int length = width * height;
+        return sum / (length == 0 ? 1 : length);
+    }
+
+    public double calcMPD(int x, int y, int width, int height) {
+        double mpdRed = getMPD(x, y, width, height, "r");
+        double mpdGreen = getMPD(x, y, width, height, "g");
+        double mpdBlue = getMPD(x, y, width, height, "b");
+        // double mpdAlpha = getMPD(x, y, width, height, "a");
+
+        return (mpdRed + mpdGreen + mpdBlue) / 3.0;
+    }
+
+    // TODO: optimasi menggunakan quadtree untuk menghitung min dan max tiap blok (O(n^2))
+    public double getMPD(int x, int y, int width, int height, String channel) {
+        int min = Integer.MAX_VALUE;
+        int max = Integer.MIN_VALUE;
+        int value = 0;
+
+        for (int j = y; j < y + height; j++) {
+            for (int i = x; i < x + width; i++) {
+                switch (channel) {
+                    case "r" -> value = ((imageData.getRGB(i, j) >> 16) & 0xFF);
+                    case "g" -> value = ((imageData.getRGB(i, j) >> 8) & 0xFF);
+                    case "b" -> value = (imageData.getRGB(i, j) & 0xFF);
+                    case "a" -> value = ((imageData.getRGB(i, j) >> 24) & 0xFF);
+                }
+                if (value < min) {
+                    min = value;
+                }
+                if (value > max) {
+                    max = value;
+                }
+            }
+        }
+        return max - min;
+    }
+
+    public double calcEntropy(int x, int y, int width, int height) {
+        double entropyRed = getEntropy(x, y, width, height, "r");
+        double entropyGreen = getEntropy(x, y, width, height, "g");
+        double entropyBlue = getEntropy(x, y, width, height, "b");
+        // double entropyAlpha = getEntropy(x, y, width, height, "a");
+
+        return (entropyRed + entropyGreen + entropyBlue) / 3.0;
+    }
+
+    public double getEntropy(int x, int y, int width, int height, String channel) {
+        double entropy = 0;
+        int[] histogram = new int[256];
+        int totalPixels = width * height;
+
+        for (int j = y; j < y + height; j++) {
+            for (int i = x; i < x + width; i++) {
+                switch (channel) {
+                    case "r" -> histogram[(imageData.getRGB(i, j) >> 16) & 0xFF]++;
+                    case "g" -> histogram[(imageData.getRGB(i, j) >> 8) & 0xFF]++;
+                    case "b" -> histogram[imageData.getRGB(i, j) & 0xFF]++;
+                    case "a" -> histogram[(imageData.getRGB(i, j) >> 24) & 0xFF]++;
+                }
+            }
+        }
+
+        for (int i = 0; i < histogram.length; i++) {
+            if (histogram[i] > 0) {
+                double p = (double) histogram[i] / totalPixels;
+                entropy -= p * Math.log(p) / Math.log(2);
+            }
+        }
+
+        return entropy;
+    }
 }
