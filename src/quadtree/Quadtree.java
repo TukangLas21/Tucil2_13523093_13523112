@@ -96,7 +96,7 @@ public class Quadtree {
         int avgGreen = (int) getAverage(node.x, node.y, leftHalfWidth, topHalfHeight, "g");
         int avgBlue = (int) getAverage(node.x, node.y, leftHalfWidth, topHalfHeight, "b");
         Color colorNode = new Color(avgRed, avgGreen, avgBlue);
-        int argb = colorNode.getRGB(); 
+        int argb = colorNode.getRGB();
 
         // int argb = (0xFF << 24) | (avgRed << 16) | (avgGreen << 8) | avgBlue; // Menggunakan alpha 255
         node.children[0] = new Node(node.x, node.y, leftHalfWidth, topHalfHeight, argb, level); // Kiri Atas
@@ -105,7 +105,7 @@ public class Quadtree {
         avgGreen = (int) getAverage(node.x + leftHalfWidth, node.y, rightHalfWidth, topHalfHeight, "g");
         avgBlue = (int) getAverage(node.x + leftHalfWidth, node.y, rightHalfWidth, topHalfHeight, "b");
         colorNode = new Color(avgRed, avgGreen, avgBlue);
-        argb = colorNode.getRGB(); 
+        argb = colorNode.getRGB();
 
         // argb = (0xFF << 24) | (avgRed << 16) | (avgGreen << 8) | avgBlue; // Menggunakan alpha 255
         node.children[1] = new Node(node.x + leftHalfWidth, node.y, rightHalfWidth, topHalfHeight, argb, level); // Kanan Atas
@@ -144,23 +144,23 @@ public class Quadtree {
             return newImageData; 
         } else {
             BufferedImage newImageData = new BufferedImage(root.width, root.height, BufferedImage.TYPE_INT_RGB); 
-            FillImageData(root, newImageData); 
-            return newImageData; 
+            FillImageData(root, newImageData);
+            return newImageData;
         }
     }
 
-    public void FillImageData(Node node, BufferedImage imageData) {
+    public void FillImageData(Node node, BufferedImage newImageData) {
         if (node == null) {
-            return; 
+            return;
         }
         for (int i = node.x; i < node.x + node.width; i++) {
             for (int j = node.y; j < node.y + node.height; j++) {
-                imageData.setRGB(i, j, node.argb);
+                newImageData.setRGB(i, j, (node.argb & 0x00FFFFFF) | (imageData.getRGB(i, j) & 0xFF000000)); // Menggunakan alpha 255
             }
         }
         if (node.children != null) {
             for (Node child : node.children) {
-                FillImageData(child, imageData);
+                FillImageData(child, newImageData);
             }
         }
     }
