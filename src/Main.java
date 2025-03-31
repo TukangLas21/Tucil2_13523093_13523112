@@ -105,6 +105,8 @@ public class Main {
             System.out.printf("Persentase kompresi: %.2f%%\n", compressionRatio);
 
             // TODO: kedalaman dan jumlah simpul pohon
+            System.out.println("Kedalaman pohon: " + quadtree.getDepth());
+            System.out.println("Jumlah simpul pohon: " + quadtree.getNodeCount());
             System.out.println("------------------------------------------------------------------------");
             break;
         }
