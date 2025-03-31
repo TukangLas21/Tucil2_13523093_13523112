@@ -68,6 +68,10 @@ public class Quadtree {
             depth = level; 
         }
         // System.out.println("BuildQuadTree: " + node.x + ", " + node.y + ", " + node.width + ", " + node.height + ", " + node.argb);
+        // if (nodeCount % 100000 == 0) {
+        //     System.out.println("Node Count: " + nodeCount + ", Depth: " + depth + ", Error: " + error);
+        // }
+        if (level < 5) System.out.println("Node Count: " + nodeCount + ", Depth: " + depth + ", Level: " + level + ", Error: " + error);
 
         int leftHalfWidth = (node.width + 1) / 2;
         int topHalfHeight = (node.height + 1) / 2;
@@ -84,7 +88,7 @@ public class Quadtree {
         errors[1] = calcError(node.x + leftHalfWidth, node.y, rightHalfWidth, topHalfHeight, errorMethod); // Kanan Atas
         errors[2] = calcError(node.x, node.y + topHalfHeight, leftHalfWidth, bottomHalfHeight, errorMethod); // Kiri Bawah
         errors[3] = calcError(node.x + leftHalfWidth, node.y + topHalfHeight, rightHalfWidth, bottomHalfHeight, errorMethod); // Kanan Bawah
-
+        
         // System.out.println("Error: " + topLeftError + ", " + topRightError + ", " + bottomLeftError + ", " + bottomRightError);
         // System.out.println("Threshold: " + threshold);
         
@@ -155,7 +159,7 @@ public class Quadtree {
         }
         for (int i = node.x; i < node.x + node.width; i++) {
             for (int j = node.y; j < node.y + node.height; j++) {
-                newImageData.setRGB(i, j, (node.argb & 0x00FFFFFF) | (imageData.getRGB(i, j) & 0xFF000000)); // Menggunakan alpha 255
+                newImageData.setRGB(i, j, (node.argb & 0x00FFFFFF) | (imageData.getRGB(i, j) & 0xFF000000));
             }
         }
         if (node.children != null) {
