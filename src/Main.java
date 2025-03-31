@@ -1,4 +1,5 @@
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.util.Scanner;
 
 import quadtree.IOHandler;
@@ -18,7 +19,7 @@ public class Main {
             
             // Inputs
             // General TODO: Verifikasi input
-            System.out.print("Silakan masukkan alamat gambar: ");
+            System.out.print("Silakan masukkan alamat gambar, gunakan \"/\" sebagai seperator: ");
             String filePath = scanner.nextLine();
 
             BufferedImage image = IOHandler.getImage(filePath);
@@ -76,14 +77,19 @@ public class Main {
             String minBlockSizeInput = scanner.nextLine();
             int minBlockSize = Integer.parseInt(minBlockSizeInput);
 
-            // TODO: input target kompresi (persen) disini 
+            // TODO: input target kompresi (persen) disini (bonus)
 
-            System.out.print("Silakan masukkan alamat output: ");
+            // TODO: Verifikasi output path
+            System.out.print("Silakan masukkan alamat absolut output (tanpa nama): ");
             String outputPath = scanner.nextLine();
+
+            String outputFileName = IOHandler.getFileName(outputPath, extension);
+
+            String absolutePath = outputPath + File.separator + outputFileName + "." + extension;
 
             // TODO: alamat GIF
 
-            // Proses
+            // Proses + catat waktu
             long startTime = System.currentTimeMillis();
             Quadtree quadtree = new Quadtree(threshold, minBlockSize);
             quadtree.CreateQuadtree(image, errorMethod);
@@ -91,17 +97,20 @@ public class Main {
             long runTime = endTime - startTime;
 
             // Outputs
+            BufferedImage compressedImage = quadtree.ImageFromQuadtree(extension);
+            if (compressedImage == null) {
+                System.out.println("Gambar tidak dapat dikompresi. Silakan coba lagi.");
+                continue;
+            }
+            IOHandler.saveImage(compressedImage, absolutePath, extension);
+
             System.out.println("Waktu kompresi: " + runTime + " ms");
             System.out.println("Ukuran file sebelum kompresi: " + fileSizeBefore + " bytes");
 
-            BufferedImage compressedImage = quadtree.ImageFromQuadtree();
-            IOHandler.saveImage(compressedImage, outputPath, extension);
-            System.out.println("Gambar berhasil disimpan di: " + outputPath);
-
-            long fileSizeAfter = IOHandler.getFileSize(outputPath + "/default." + extension); // TODO: tambahkan nama file
+            long fileSizeAfter = IOHandler.getFileSize(absolutePath); 
             System.out.println("Ukuran file setelah kompresi: " + fileSizeAfter + " bytes");
 
-            double compressionRatio = (double) fileSizeBefore / fileSizeAfter * 100;
+            double compressionRatio = (double) fileSizeAfter / fileSizeBefore * 100;
             System.out.printf("Persentase kompresi: %.2f%%\n", compressionRatio);
 
             // TODO: kedalaman dan jumlah simpul pohon
