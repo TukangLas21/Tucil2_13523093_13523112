@@ -20,7 +20,7 @@ public class Main {
             // Inputs
             // General TODO: Verifikasi input
             System.out.print("Silakan masukkan alamat gambar, gunakan \"/\" sebagai seperator: ");
-            String filePath = scanner.nextLine();
+            String filePath = scanner.nextLine().replaceAll("^['\"]+|['\"]+$", "");
 
             BufferedImage image = IOHandler.getImage(filePath);
             if (image == null) {
@@ -81,7 +81,7 @@ public class Main {
 
             // TODO: Verifikasi output path
             System.out.print("Silakan masukkan alamat absolut output (tanpa nama): ");
-            String outputPath = scanner.nextLine();
+            String outputPath = scanner.nextLine().replaceAll("^['\"]+|['\"]+$", "");
 
             String outputFileName = IOHandler.getFileName(outputPath, extension);
 

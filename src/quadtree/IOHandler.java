@@ -62,7 +62,7 @@ public class IOHandler {
     // Method untuk mendapatkan nama file output sekaligus memvalidasikan input pengguna
     public static String getFileName(String outputPath, String extension) {
         System.out.print("Silakan masukkan nama file (tanpa ekstensi): ");
-        String fileName = scanner.nextLine();
+        String fileName = scanner.nextLine().replaceAll("^['\"]+|['\"]+$", "");
         File filePath = new File(outputPath, fileName + "." + extension);
 
         // Cek apakah sudah ada file dengan nama yang sama
