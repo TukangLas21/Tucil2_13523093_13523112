@@ -1,5 +1,7 @@
 package quadtree;
+import java.awt.Color;
 import java.awt.image.BufferedImage;
+
 public class Quadtree {
     public Node root;
     public double threshold; 
@@ -93,28 +95,39 @@ public class Quadtree {
         int avgRed = (int) getAverage(node.x, node.y, leftHalfWidth, topHalfHeight, "r");
         int avgGreen = (int) getAverage(node.x, node.y, leftHalfWidth, topHalfHeight, "g");
         int avgBlue = (int) getAverage(node.x, node.y, leftHalfWidth, topHalfHeight, "b");
-        int argb = (0xFF << 24) | (avgRed << 16) | (avgGreen << 8) | avgBlue; // Menggunakan alpha 255
+        Color colorNode = new Color(avgRed, avgGreen, avgBlue);
+        int argb = colorNode.getRGB(); 
+
+        // int argb = (0xFF << 24) | (avgRed << 16) | (avgGreen << 8) | avgBlue; // Menggunakan alpha 255
         node.children[0] = new Node(node.x, node.y, leftHalfWidth, topHalfHeight, argb, level); // Kiri Atas
 
         avgRed = (int) getAverage(node.x + leftHalfWidth, node.y, rightHalfWidth, topHalfHeight, "r");
         avgGreen = (int) getAverage(node.x + leftHalfWidth, node.y, rightHalfWidth, topHalfHeight, "g");
         avgBlue = (int) getAverage(node.x + leftHalfWidth, node.y, rightHalfWidth, topHalfHeight, "b");
-        argb = (0xFF << 24) | (avgRed << 16) | (avgGreen << 8) | avgBlue; // Menggunakan alpha 255
+        colorNode = new Color(avgRed, avgGreen, avgBlue);
+        argb = colorNode.getRGB(); 
+
+        // argb = (0xFF << 24) | (avgRed << 16) | (avgGreen << 8) | avgBlue; // Menggunakan alpha 255
         node.children[1] = new Node(node.x + leftHalfWidth, node.y, rightHalfWidth, topHalfHeight, argb, level); // Kanan Atas
 
         avgRed = (int) getAverage(node.x, node.y + topHalfHeight, leftHalfWidth, bottomHalfHeight, "r");
         avgGreen = (int) getAverage(node.x, node.y + topHalfHeight, leftHalfWidth, bottomHalfHeight, "g");
         avgBlue = (int) getAverage(node.x, node.y + topHalfHeight, leftHalfWidth, bottomHalfHeight, "b");
-        argb = (0xFF << 24) | (avgRed << 16) | (avgGreen << 8) | avgBlue; // Menggunakan alpha 255
+
+        colorNode = new Color(avgRed, avgGreen, avgBlue);
+        argb = colorNode.getRGB(); 
+
+        // argb = (0xFF << 24) | (avgRed << 16) | (avgGreen << 8) | avgBlue; // Menggunakan alpha 255
         node.children[2] = new Node(node.x, node.y + topHalfHeight, leftHalfWidth, bottomHalfHeight, argb, level); // Kiri Bawah
 
         avgRed = (int) getAverage(node.x + leftHalfWidth, node.y + topHalfHeight, rightHalfWidth, bottomHalfHeight, "r");
         avgGreen = (int) getAverage(node.x + leftHalfWidth, node.y + topHalfHeight, rightHalfWidth, bottomHalfHeight, "g");
         avgBlue = (int) getAverage(node.x + leftHalfWidth, node.y + topHalfHeight, rightHalfWidth, bottomHalfHeight, "b");
-        argb = (0xFF << 24) | (avgRed << 16) | (avgGreen << 8) | avgBlue; // Menggunakan alpha 255
+        colorNode = new Color(avgRed, avgGreen, avgBlue);
+        argb = colorNode.getRGB(); 
+
+        // argb = (0xFF << 24) | (avgRed << 16) | (avgGreen << 8) | avgBlue; // Menggunakan alpha 255
         node.children[3] = new Node(node.x + leftHalfWidth, node.y + topHalfHeight, rightHalfWidth, bottomHalfHeight, argb, level); // Kanan Bawah
-        
-        
 
         for (int i = 0; i < 4; i++) {
             if (node.children[i] != null) {
@@ -124,10 +137,16 @@ public class Quadtree {
         }
     }
 
-    public BufferedImage ImageFromQuadtree() {
-        BufferedImage newImageData = new BufferedImage(root.width, root.height, BufferedImage.TYPE_INT_ARGB); 
-        FillImageData(root, newImageData); 
-        return newImageData; 
+    public BufferedImage ImageFromQuadtree(String extension) {
+        if (extension.equals("png") || extension.equals("gif") || extension.equals("tiff")) {
+            BufferedImage newImageData = new BufferedImage(root.width, root.height, BufferedImage.TYPE_INT_ARGB); 
+            FillImageData(root, newImageData); 
+            return newImageData; 
+        } else {
+            BufferedImage newImageData = new BufferedImage(root.width, root.height, BufferedImage.TYPE_INT_RGB); 
+            FillImageData(root, newImageData); 
+            return newImageData; 
+        }
     }
 
     public void FillImageData(Node node, BufferedImage imageData) {

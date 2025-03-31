@@ -2,11 +2,14 @@ package quadtree;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.Scanner;
 
 import javax.imageio.ImageIO;
 
 public class IOHandler {
     
+    private static Scanner scanner = new Scanner(System.in);
+
     // Load image dari path sebagai BufferedImage
     public static BufferedImage getImage(String imagePath) {
         try {
@@ -40,19 +43,37 @@ public class IOHandler {
     }
 
     // Save image pada output path
-    public static void saveImage(BufferedImage image, String outputPath, String extension) {
+    public static void saveImage(BufferedImage image, String absolutePath, String extension) {
         try {
-            File outputFile = new File(outputPath, "default." + extension);
-            // File outputFile = new File(outputPath);
-            if (!extension.isEmpty()) {
-                ImageIO.write(image, extension, outputFile);
+            File outputFile = new File(absolutePath);
+
+            // Save the image
+            boolean isSaved = ImageIO.write(image, extension, outputFile);
+            if (isSaved) {
+                System.out.println("Image saved successfully at: " + outputFile.getAbsolutePath());
             } else {
-                // Jika tidak ada extension, gunakan default JPG
-                ImageIO.write(image, "jpg", outputFile);
+                System.err.println("Error saving image.");
             }
         } catch (IOException e) {
             System.err.println("Error saving image: " + e.getMessage());
         }
+    }
+
+    // Method untuk mendapatkan nama file output sekaligus memvalidasikan input pengguna
+    public static String getFileName(String outputPath, String extension) {
+        System.out.print("Silakan masukkan nama file (tanpa ekstensi): ");
+        String fileName = scanner.nextLine();
+        File filePath = new File(outputPath, fileName + "." + extension);
+
+        // Cek apakah sudah ada file dengan nama yang sama
+        while (filePath.exists() || fileName.equals("")) {
+            System.out.println("File sudah ada atau masukan tidak valid. Silakan coba lagi.");
+            System.out.print("Masukkan nama file (tanpa ekstensi): ");
+            fileName = scanner.nextLine();
+            filePath = new File(outputPath, fileName + "." + extension);
+        }
+        
+        return fileName;
     }
 
     // Dapatkan image data dalam bentuk array 3D
