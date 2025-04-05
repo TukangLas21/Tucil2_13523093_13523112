@@ -327,4 +327,8 @@ public class Quadtree {
 
         return entropy;
     }
+
+    public static double compressionPercentage(long originalSize, long compressedSize) {
+        return ((double) (originalSize - compressedSize) / originalSize) * 100;
+    }
 }
