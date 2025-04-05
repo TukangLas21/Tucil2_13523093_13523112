@@ -110,7 +110,7 @@ public class Main {
             long fileSizeAfter = IOHandler.getFileSize(absolutePath); 
             System.out.println("Ukuran file setelah kompresi: " + fileSizeAfter + " bytes");
 
-            double compressionRatio = (double) fileSizeAfter / fileSizeBefore * 100;
+            double compressionRatio = Quadtree.compressionPercentage(fileSizeBefore, fileSizeAfter);
             System.out.printf("Persentase kompresi: %.2f%%\n", compressionRatio);
 
             // TODO: kedalaman dan jumlah simpul pohon
