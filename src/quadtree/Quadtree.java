@@ -106,7 +106,7 @@ public class Quadtree {
 
         // Verbose output for debugging
         if (verbose) {
-            if (level < 5) System.out.println("[BUILDING QUADTREE] ID " + verboseCount++ + "/341: Node Count: " + nodeCount + ", Depth: " + depth + ", Level: " + level + ", Error: " + node.error);
+            if (level < 5) System.out.println("[BUILDING QUADTREE] ID " + verboseCount++ + ": Node Count: " + nodeCount + ", Depth: " + depth + ", Level: " + level + ", Error: " + node.error);
         }
 
         int leftHalfWidth = (node.width + 1) / 2;
@@ -214,7 +214,7 @@ public class Quadtree {
         }
         node.isLeaf = false;
         for (Node child : node.children) {
-            RefreshLeaves(child, threshold); 
+            RefreshLeaves(child, threshold);
         }
     }
 
@@ -223,7 +223,7 @@ public class Quadtree {
             throw new IllegalStateException("Quadtree is not initialized. Please call CreateQuadtree() first.");
         }
         this.leafCount = 0;
-        RefreshLeaves(root, threshold); 
+        RefreshLeaves(root, threshold);
     }
 
     /**
@@ -233,7 +233,7 @@ public class Quadtree {
      * @param errorMethod
      * @return
      */
-    public static Quadtree TargetedPercentageCompress(File originalImageFile, double targetCompressionPercentage, String extension, boolean verbose) {
+    public static Quadtree TargetedPercentageCompress(File originalImageFile, double targetCompressionPercentage, double maxThresh, String extension, boolean verbose) {
         if (targetCompressionPercentage < 0 || targetCompressionPercentage > 100) {
             throw new IllegalArgumentException("Target compression percentage must be between 0 and 100.");
         }
@@ -261,7 +261,8 @@ public class Quadtree {
         long originalFileSize = originalImageFile.length();
 
         // Initialize quadtree parameters
-        double upper = 255 * 255 / 4;
+        // double upper = 255 * 255 / 4;
+        double upper = maxThresh;
         double lower = 0;
         double mid = (upper + lower) / 2;
         double tolerance = 1; // Tolerance for binary search
@@ -293,7 +294,7 @@ public class Quadtree {
 
             // Verbose
             if (verbose) {
-                System.out.println("[TARGETED COMPRESSION] Iteration " + iteration + ": Compression percentage: " + percent + "%, Target: " + targetCompressionPercentage + "%, File size: " + compressedFileSize + " bytes");
+                System.out.println("[TARGETED COMPRESSION] Iteration " + iteration + ": Compression percentage: " + percent + "%, Target: " + targetCompressionPercentage + "%, File size: " + compressedFileSize + " bytes, Threshold: " + mid);
             }
             iteration++;
 
@@ -510,12 +511,13 @@ public class Quadtree {
     }
 
     public static void main(String[] args) {
-        String filePath = "C:\\Users\\Karol\\ITB\\Teknik-Informatika\\semester_4\\IF2211_StrategiAlgoritma\\Tucil2_13523093_13523112\\test\\tokyo_blurred5.jpg"; // Ganti dengan path gambar yang sesuai
+        String filePath = "C:\\Users\\Karol\\ITB\\Teknik-Informatika\\semester_4\\IF2211_StrategiAlgoritma\\Tucil2_13523093_13523112\\test\\flowers.jpg"; // Ganti dengan path gambar yang sesuai
         File originalImageFile = new File(filePath);
         String extension = IOHandler.getExtension(filePath);
         double targetCompressionPercentage = 50.0;
 
-        Quadtree qt = Quadtree.TargetedPercentageCompress(originalImageFile, targetCompressionPercentage, extension, true);
+        double maxThresh = 4000;
+        Quadtree qt = Quadtree.TargetedPercentageCompress(originalImageFile, targetCompressionPercentage, maxThresh, extension, true);
         BufferedImage compressedImage = qt.ImageFromQuadtree(extension);
         
         // Save file 
@@ -536,5 +538,7 @@ public class Quadtree {
         System.out.println("Node count: " + qt.getNodeCount());
         System.out.println("Depth: " + qt.getDepth());
         System.out.println("Leaf count: " + qt.getLeafCount());
+        System.out.println("Threshold: " + qt.threshold);
+        System.out.println("Max threshold: " + maxThresh);
     }
 }
