@@ -226,6 +226,20 @@ public class Quadtree {
         RefreshLeaves(root, threshold);
     }
 
+    public static double MaximumError(String errorMethod) {
+        return switch (errorMethod) {
+            case "variance" -> 16256.25; // Variance threshold for 8-bit color depth (255^2 / 4)
+            case "mad" -> 127.5; // Maximum absolute difference for 8-bit color depth (255 / 2)
+            case "mpd" -> 255; // Maximum possible difference for 8-bit color depth (255 - 0)
+            case "entropy" -> 8.0; // Maximum entropy for 8-bit color depth (log2(256))
+            default -> throw new IllegalArgumentException("Invalid error method: " + errorMethod);
+        };
+    }
+
+    public static Quadtree TargetedPercentageCompress(File originalImageFile, double targetCompressionPercentage, String errorMethod, String extension, boolean verbose) {
+        return TargetedPercentageCompress(originalImageFile, targetCompressionPercentage, errorMethod, MaximumError(errorMethod), extension, verbose);
+    }
+
     /**
      * 
      * @param originalImageFile
@@ -233,7 +247,7 @@ public class Quadtree {
      * @param errorMethod
      * @return
      */
-    public static Quadtree TargetedPercentageCompress(File originalImageFile, double targetCompressionPercentage, double maxThresh, String extension, boolean verbose) {
+    public static Quadtree TargetedPercentageCompress(File originalImageFile, double targetCompressionPercentage, String errorMethod, double maxThresh, String extension, boolean verbose) {
         if (targetCompressionPercentage < 0 || targetCompressionPercentage > 100) {
             throw new IllegalArgumentException("Target compression percentage must be between 0 and 100.");
         }
@@ -268,7 +282,6 @@ public class Quadtree {
         double tolerance = 1; // Tolerance for binary search
         double stoppingThreshold = 0.5; // Stopping threshold for binary search
         int maxStoppingThresholdCount = 5;
-        String errorMethod = "variance";
         
         int stoppingThresholdCount = maxStoppingThresholdCount;
         int iteration = 1;
@@ -356,6 +369,7 @@ public class Quadtree {
             case "entropy" -> error = calcEntropy(x, y, width, height);
             // case "ssim" -> error = calcSSIM(x, y, width, height);
             default -> {
+                throw new IllegalArgumentException("Invalid error method: " + method);
             }
         }
         return error;
@@ -511,13 +525,14 @@ public class Quadtree {
     }
 
     public static void main(String[] args) {
-        String filePath = "C:\\Users\\Karol\\ITB\\Teknik-Informatika\\semester_4\\IF2211_StrategiAlgoritma\\Tucil2_13523093_13523112\\test\\flowers.jpg"; // Ganti dengan path gambar yang sesuai
+        String filePath = "C:\\Users\\Karol\\ITB\\Teknik-Informatika\\semester_4\\IF2211_StrategiAlgoritma\\Tucil2_13523093_13523112\\test\\tokyo_blurred5.jpg"; // Ganti dengan path gambar yang sesuai
         File originalImageFile = new File(filePath);
         String extension = IOHandler.getExtension(filePath);
         double targetCompressionPercentage = 50.0;
 
         double maxThresh = 4000;
-        Quadtree qt = Quadtree.TargetedPercentageCompress(originalImageFile, targetCompressionPercentage, maxThresh, extension, true);
+        String errorMethod = "variance"; // Variance, mad, mpd, entropy
+        Quadtree qt = Quadtree.TargetedPercentageCompress(originalImageFile, targetCompressionPercentage, errorMethod, extension, true);
         BufferedImage compressedImage = qt.ImageFromQuadtree(extension);
         
         // Save file 
@@ -539,6 +554,6 @@ public class Quadtree {
         System.out.println("Depth: " + qt.getDepth());
         System.out.println("Leaf count: " + qt.getLeafCount());
         System.out.println("Threshold: " + qt.threshold);
-        System.out.println("Max threshold: " + maxThresh);
+        System.out.println("Max threshold: " + MaximumError(errorMethod));
     }
 }
