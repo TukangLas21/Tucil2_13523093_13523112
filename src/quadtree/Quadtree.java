@@ -2,15 +2,21 @@ package quadtree;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Comparator;
 
 import javax.imageio.ImageIO;
 
 public class Quadtree {
     public Node root;
-    public double threshold; // minimum 0.0
+    public double threshold; // minimum 0.0, Double.NEGATIVE_INFINITY to guarantee maximum depth
     public int minSize; // minimum 1 pixel
     public BufferedImage imageData;
-    private long nodeCount = 0; 
+    private long nodeCount = 0;
+    private long leafCount = 0;
     private int depth = 0;
 
     public Quadtree(double threshold, int minSize) {
@@ -20,12 +26,27 @@ public class Quadtree {
         this.imageData = null; 
     }
 
+    public Quadtree() {
+        this.root = null; 
+        this.threshold = Double.NEGATIVE_INFINITY; // maximum depth
+        this.minSize = 1; 
+        this.imageData = null;
+    }
+
     public long getNodeCount() {
         return nodeCount; 
     }
 
     public int getDepth() {
         return depth; 
+    }
+
+    public long getLeafCount() {
+        return leafCount; 
+    }
+
+    public BufferedImage getImageData() {
+        return imageData; 
     }
 
     public void CreateQuadtree(BufferedImage imageData, String errorMethod, boolean verbose) {
@@ -39,9 +60,12 @@ public class Quadtree {
         int avgGreen = (int) getAverage(0, 0, width, height, "g");
         int avgBlue = (int) getAverage(0, 0, width, height, "b");
         Color colorNode = new Color(avgRed, avgGreen, avgBlue);
-        this.root = new Node(0, 0, width, height, colorNode.getRGB(), 0); 
+        double error = calcError(0, 0, width, height, errorMethod);
+        this.root = new Node(0, 0, width, height, colorNode.getRGB(), 0, error); 
+        this.leafCount = 0;
+        this.nodeCount = 1;
 
-        BuildQuadTree(root, imageData, errorMethod, calcError(root.x, root.y, root.width, root.height, errorMethod), 1, verbose);
+        BuildQuadTree(root, imageData, errorMethod, 1, verbose);
     }
 
     public void CreateQuadtree(BufferedImage imageData, String errorMethod) {
@@ -49,20 +73,29 @@ public class Quadtree {
     }
 
     // Helper method to build the quadtree recursively
-    private void BuildQuadTree(Node node, BufferedImage imageData, String errorMethod, double error, int level, boolean verbose) {
+    private void BuildQuadTree(Node node, BufferedImage imageData, String errorMethod, int level, boolean verbose) {
         
         if (node == null) {
             return; 
         }
         if (node.width <= 1 && node.height <= 1) {
+            node.isLeaf = true;
+            leafCount++;
             return; 
         }
         if ((node.width/2 * node.height/2) < minSize) {
+            node.isLeaf = true;
+            leafCount++;
             return; 
         }
-        if (error < threshold) {
+        if (node.error <= threshold) {
+            node.isLeaf = true;
+            leafCount++;
             return;
         }
+
+        // Split the node into 4 children
+        node.isLeaf = false;
 
         if (level > depth) {
             depth = level; 
@@ -70,24 +103,13 @@ public class Quadtree {
 
         // Verbose output for debugging
         if (verbose) {
-            if (level < 5) System.out.println("Node Count: " + nodeCount + ", Depth: " + depth + ", Level: " + level + ", Error: " + error);
+            if (level < 5) System.out.println("Node Count: " + nodeCount + ", Depth: " + depth + ", Level: " + level + ", Error: " + node.error);
         }
 
         int leftHalfWidth = (node.width + 1) / 2;
         int topHalfHeight = (node.height + 1) / 2;
         int rightHalfWidth = node.width - leftHalfWidth;
         int bottomHalfHeight = node.height - topHalfHeight;
-
-        double errors[] = new double[4];
-
-        for (int i = 0; i < 4; i++) {
-            errors[i] = Double.POSITIVE_INFINITY;
-        }
-
-        errors[0] = calcError(node.x, node.y, leftHalfWidth, topHalfHeight, errorMethod); // Kiri Atas
-        errors[1] = calcError(node.x + leftHalfWidth, node.y, rightHalfWidth, topHalfHeight, errorMethod); // Kanan Atas
-        errors[2] = calcError(node.x, node.y + topHalfHeight, leftHalfWidth, bottomHalfHeight, errorMethod); // Kiri Bawah
-        errors[3] = calcError(node.x + leftHalfWidth, node.y + topHalfHeight, rightHalfWidth, bottomHalfHeight, errorMethod); // Kanan Bawah
 
         node.children = new Node[4];
 
@@ -96,37 +118,40 @@ public class Quadtree {
         int avgBlue = (int) getAverage(node.x, node.y, leftHalfWidth, topHalfHeight, "b");
         Color colorNode = new Color(avgRed, avgGreen, avgBlue);
         int argb = colorNode.getRGB();
+        double error = calcError(node.x, node.y, leftHalfWidth, topHalfHeight, errorMethod); // Kiri Atas
 
-        node.children[0] = new Node(node.x, node.y, leftHalfWidth, topHalfHeight, argb, level); // Kiri Atas
+        node.children[0] = new Node(node.x, node.y, leftHalfWidth, topHalfHeight, argb, level, error); // Kiri Atas
 
         avgRed = (int) getAverage(node.x + leftHalfWidth, node.y, rightHalfWidth, topHalfHeight, "r");
         avgGreen = (int) getAverage(node.x + leftHalfWidth, node.y, rightHalfWidth, topHalfHeight, "g");
         avgBlue = (int) getAverage(node.x + leftHalfWidth, node.y, rightHalfWidth, topHalfHeight, "b");
         colorNode = new Color(avgRed, avgGreen, avgBlue);
         argb = colorNode.getRGB();
+        error = calcError(node.x + leftHalfWidth, node.y, rightHalfWidth, topHalfHeight, errorMethod); // Kanan Atas
 
-        node.children[1] = new Node(node.x + leftHalfWidth, node.y, rightHalfWidth, topHalfHeight, argb, level); // Kanan Atas
+        node.children[1] = new Node(node.x + leftHalfWidth, node.y, rightHalfWidth, topHalfHeight, argb, level, error); // Kanan Atas
 
         avgRed = (int) getAverage(node.x, node.y + topHalfHeight, leftHalfWidth, bottomHalfHeight, "r");
         avgGreen = (int) getAverage(node.x, node.y + topHalfHeight, leftHalfWidth, bottomHalfHeight, "g");
         avgBlue = (int) getAverage(node.x, node.y + topHalfHeight, leftHalfWidth, bottomHalfHeight, "b");
-
         colorNode = new Color(avgRed, avgGreen, avgBlue);
         argb = colorNode.getRGB(); 
+        error = calcError(node.x, node.y + topHalfHeight, leftHalfWidth, bottomHalfHeight, errorMethod); // Kiri Bawah
 
-        node.children[2] = new Node(node.x, node.y + topHalfHeight, leftHalfWidth, bottomHalfHeight, argb, level); // Kiri Bawah
+        node.children[2] = new Node(node.x, node.y + topHalfHeight, leftHalfWidth, bottomHalfHeight, argb, level, error); // Kiri Bawah
 
         avgRed = (int) getAverage(node.x + leftHalfWidth, node.y + topHalfHeight, rightHalfWidth, bottomHalfHeight, "r");
         avgGreen = (int) getAverage(node.x + leftHalfWidth, node.y + topHalfHeight, rightHalfWidth, bottomHalfHeight, "g");
         avgBlue = (int) getAverage(node.x + leftHalfWidth, node.y + topHalfHeight, rightHalfWidth, bottomHalfHeight, "b");
         colorNode = new Color(avgRed, avgGreen, avgBlue);
         argb = colorNode.getRGB(); 
+        error = calcError(node.x + leftHalfWidth, node.y + topHalfHeight, rightHalfWidth, bottomHalfHeight, errorMethod); // Kanan Bawah
 
-        node.children[3] = new Node(node.x + leftHalfWidth, node.y + topHalfHeight, rightHalfWidth, bottomHalfHeight, argb, level); // Kanan Bawah
+        node.children[3] = new Node(node.x + leftHalfWidth, node.y + topHalfHeight, rightHalfWidth, bottomHalfHeight, argb, level, error); // Kanan Bawah
 
         for (int i = 0; i < 4; i++) {
             if (node.children[i] != null) {
-                BuildQuadTree(node.children[i], imageData, errorMethod, errors[i], level + 1, verbose);
+                BuildQuadTree(node.children[i], imageData, errorMethod, level + 1, verbose);
                 nodeCount++;
             }
         }
@@ -148,7 +173,7 @@ public class Quadtree {
         if (node == null) {
             return;
         }
-        if (node.children == null) {
+        if (node.isLeaf) {
             for (int i = node.x; i < node.x + node.width; i++) {
                 for (int j = node.y; j < node.y + node.height; j++) {
                     newImageData.setRGB(i, j, (node.argb & 0x00FFFFFF) | (imageData.getRGB(i, j) & 0xFF000000));
@@ -161,6 +186,43 @@ public class Quadtree {
         }
     }
 
+    public void RefreshLeaves(double threshold) {
+        if (root == null) {
+            throw new IllegalStateException("Quadtree is not initialized. Please call CreateQuadtree() first.");
+        }
+        this.threshold = threshold;
+        this.leafCount = 0;
+        RefreshLeaves(root, threshold);
+    }
+
+    private void RefreshLeaves(Node node, double threshold) {
+        if (node == null) {
+            return; 
+        }
+        if (node.children == null) {
+            node.isLeaf = true;
+            leafCount++;
+            return; 
+        }
+        if (node.error <= threshold) {
+            node.isLeaf = true; 
+            leafCount++;
+            return; 
+        }
+        node.isLeaf = false;
+        for (Node child : node.children) {
+            RefreshLeaves(child, threshold); 
+        }
+    }
+
+    public void RefreshLeaves() {
+        if (root == null) {
+            throw new IllegalStateException("Quadtree is not initialized. Please call CreateQuadtree() first.");
+        }
+        this.leafCount = 0;
+        RefreshLeaves(root, threshold); 
+    }
+
     /**
      * 
      * @param originalImageFile
@@ -168,7 +230,7 @@ public class Quadtree {
      * @param errorMethod
      * @return
      */
-    public static BufferedImage targetedPercentageCompress(File originalImageFile, double targetCompressionPercentage, String errorMethod, String extension) {
+    public static Quadtree TargetedPercentageCompress(File originalImageFile, double targetCompressionPercentage, String extension, boolean verbose) {
         if (targetCompressionPercentage < 0 || targetCompressionPercentage > 100) {
             throw new IllegalArgumentException("Target compression percentage must be between 0 and 100.");
         }
@@ -195,26 +257,29 @@ public class Quadtree {
         // Get original file size
         long originalFileSize = originalImageFile.length();
 
-        // Calculate target file size
-        long targetFileSize = (long) ((1 - targetCompressionPercentage / 100) * originalFileSize);
-
-        // Initialize quadtree
+        // Initialize quadtree parameters
         double upper = 255 * 255 / 4;
         double lower = 0;
         double mid = (upper + lower) / 2;
-        int minBlockSize = 1;
-        Quadtree quadtree;
         double tolerance = 1; // Tolerance for binary search
         double stoppingThreshold = 0.5; // Stopping threshold for binary search
-
+        int maxStoppingThresholdCount = 5;
+        String errorMethod = "variance";
+        
+        int stoppingThresholdCount = maxStoppingThresholdCount;
         int iteration = 1;
         double lastPercent = targetCompressionPercentage;
+        File compressedImageFile;
+        
+        // Initialize and build quadtree with maximum depth and node count
+        Quadtree quadtree = new Quadtree();
+        quadtree.CreateQuadtree(image, errorMethod, verbose);
 
         while (true) { 
-            quadtree = new Quadtree(mid, minBlockSize);
-            quadtree.CreateQuadtree(image, errorMethod);
+            // Create quadtree with current threshold
+            quadtree.RefreshLeaves(mid);
             BufferedImage compressedImage = quadtree.ImageFromQuadtree(extension);
-            File compressedImageFile = new File(binDir + File.separator + "compressed_image." + extension);
+            compressedImageFile = new File(binDir + File.separator + "compressed_image." + extension);
             try {
                 ImageIO.write(compressedImage, extension, compressedImageFile);
             } catch (Exception e) {
@@ -224,26 +289,56 @@ public class Quadtree {
             double percent = compressionPercentage(originalFileSize, compressedFileSize);
 
             // Verbose
-            System.out.println("Iteration " + iteration + ": Compression percentage: " + percent + "%, Target: " + targetCompressionPercentage + "%, File size: " + compressedFileSize + " bytes");
+            if (verbose) {
+                System.out.println("Iteration " + iteration + ": Compression percentage: " + percent + "%, Target: " + targetCompressionPercentage + "%, File size: " + compressedFileSize + " bytes");
+            }
             iteration++;
 
             if (Math.abs(percent - lastPercent) < stoppingThreshold) {
-                // If the difference is less than the stopping threshold, break the loop
-                return compressedImage; // Return the compressed image
-            }
-            lastPercent = percent; // Update last percent
-
-            if (percent >= targetCompressionPercentage) {
-                // Check if the difference is within the tolerance
-                if (Math.abs(percent - targetCompressionPercentage) <= tolerance) {
-                    return compressedImage; // Return the compressed image
-                } else {
-                    upper = mid; // Adjust upper bound
+                stoppingThresholdCount--;
+                if (stoppingThresholdCount <= 0) {
+                    try {
+                        deleteTempBin();
+                    } catch (IOException e) {
+                        System.err.println("Error deleting temporary bin: " + e.getMessage());
+                    }
+                    return quadtree; 
                 }
             } else {
-                lower = mid; // Adjust lower bound
+                stoppingThresholdCount = maxStoppingThresholdCount; // Reset if the difference is significant
             }
-            mid = (upper + lower) / 2; // Update mid value
+
+            lastPercent = percent; 
+            
+            if (percent >= targetCompressionPercentage) {
+                if (Math.abs(percent - targetCompressionPercentage) <= tolerance) {
+                    try {
+                        deleteTempBin();
+                    } catch (IOException e) {
+                        System.err.println("Error deleting temporary bin: " + e.getMessage());
+                    }
+                    return quadtree;
+                } else {
+                    upper = mid;
+                }
+            } else {
+                lower = mid;
+            }
+            mid = (upper + lower) / 2;
+        }
+    }
+
+    public static void deleteTempBin() throws IOException {
+        Path binDir = Paths.get(System.getProperty("java.io.tmpdir"), "quadtree", "bin");
+        if (Files.exists(binDir)) {
+            Files.walk(binDir)
+                .sorted(Comparator.reverseOrder())
+                .forEach(path -> {
+                    try { Files.delete(path); }
+                    catch (IOException e) {
+                        System.err.println("Failed to delete file: " + path + " - " + e.getMessage());
+                    }
+                });
         }
     }
 
@@ -412,17 +507,17 @@ public class Quadtree {
     }
 
     public static void main(String[] args) {
-        String filePath = "C:\\Users\\Karol\\ITB\\Teknik-Informatika\\semester_4\\IF2211_StrategiAlgoritma\\Tucil2_13523093_13523112\\test\\plant.jpg"; // Ganti dengan path gambar yang sesuai
+        String filePath = "C:\\Users\\Karol\\ITB\\Teknik-Informatika\\semester_4\\IF2211_StrategiAlgoritma\\Tucil2_13523093_13523112\\test\\flowers.jpg"; // Ganti dengan path gambar yang sesuai
         File originalImageFile = new File(filePath);
         String extension = IOHandler.getExtension(filePath);
-        String errorMethod = "variance"; // Ganti dengan metode error yang diinginkan
-        double targetCompressionPercentage = 1.0; // Ganti dengan persentase kompresi yang diinginkan
+        double targetCompressionPercentage = 50.0;
 
-        BufferedImage compressedImage = Quadtree.targetedPercentageCompress(originalImageFile, targetCompressionPercentage, errorMethod, extension);
+        Quadtree qt = Quadtree.TargetedPercentageCompress(originalImageFile, targetCompressionPercentage, extension, true);
+        BufferedImage compressedImage = qt.ImageFromQuadtree(extension);
         
         // Save file 
         String outputPath = "C:\\Users\\Karol\\ITB\\Teknik-Informatika\\semester_4\\IF2211_StrategiAlgoritma\\Tucil2_13523093_13523112\\test\\";
-        String fileName = "compressed_image"; 
+        String fileName = "compressed_image";
 
         String outputFilePath = outputPath + fileName + "." + extension;
         File outputFile = new File(outputFilePath);
@@ -435,6 +530,8 @@ public class Quadtree {
         System.out.println("Original file size: " + originalImageFile.length() + " bytes");
         System.out.println("Compressed file size: " + outputFile.length() + " bytes");
         System.out.println("Compression percentage: " + Quadtree.compressionPercentage(originalImageFile.length(), outputFile.length()) + "%");
-        System.out.println("Node count: " + compressedImage.getWidth() * compressedImage.getHeight() / (originalImageFile.length() / outputFile.length()));
+        System.out.println("Node count: " + qt.getNodeCount());
+        System.out.println("Depth: " + qt.getDepth());
+        System.out.println("Leaf count: " + qt.getLeafCount());
     }
 }
