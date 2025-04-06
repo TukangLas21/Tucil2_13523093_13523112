@@ -18,6 +18,7 @@ public class Quadtree {
     private long nodeCount = 0;
     private long leafCount = 0;
     private int depth = 0;
+    private long verboseCount = 0;
 
     public Quadtree(double threshold, int minSize) {
         this.root = null; 
@@ -64,6 +65,8 @@ public class Quadtree {
         this.root = new Node(0, 0, width, height, colorNode.getRGB(), 0, error); 
         this.leafCount = 0;
         this.nodeCount = 1;
+        this.depth = 0;
+        this.verboseCount = 0;
 
         BuildQuadTree(root, imageData, errorMethod, 1, verbose);
     }
@@ -103,7 +106,7 @@ public class Quadtree {
 
         // Verbose output for debugging
         if (verbose) {
-            if (level < 5) System.out.println("Node Count: " + nodeCount + ", Depth: " + depth + ", Level: " + level + ", Error: " + node.error);
+            if (level < 5) System.out.println("[BUILDING QUADTREE] ID " + verboseCount++ + "/341: Node Count: " + nodeCount + ", Depth: " + depth + ", Level: " + level + ", Error: " + node.error);
         }
 
         int leftHalfWidth = (node.width + 1) / 2;
@@ -290,7 +293,7 @@ public class Quadtree {
 
             // Verbose
             if (verbose) {
-                System.out.println("Iteration " + iteration + ": Compression percentage: " + percent + "%, Target: " + targetCompressionPercentage + "%, File size: " + compressedFileSize + " bytes");
+                System.out.println("[TARGETED COMPRESSION] Iteration " + iteration + ": Compression percentage: " + percent + "%, Target: " + targetCompressionPercentage + "%, File size: " + compressedFileSize + " bytes");
             }
             iteration++;
 
@@ -507,7 +510,7 @@ public class Quadtree {
     }
 
     public static void main(String[] args) {
-        String filePath = "C:\\Users\\Karol\\ITB\\Teknik-Informatika\\semester_4\\IF2211_StrategiAlgoritma\\Tucil2_13523093_13523112\\test\\flowers.jpg"; // Ganti dengan path gambar yang sesuai
+        String filePath = "C:\\Users\\Karol\\ITB\\Teknik-Informatika\\semester_4\\IF2211_StrategiAlgoritma\\Tucil2_13523093_13523112\\test\\tokyo_blurred5.jpg"; // Ganti dengan path gambar yang sesuai
         File originalImageFile = new File(filePath);
         String extension = IOHandler.getExtension(filePath);
         double targetCompressionPercentage = 50.0;
