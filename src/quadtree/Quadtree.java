@@ -198,6 +198,14 @@ public class Quadtree {
         RefreshLeaves(root, threshold);
     }
 
+    public void RefreshLeaves(int maxDepth) {
+        if (root == null) {
+            throw new IllegalStateException("Quadtree is not initialized. Please call CreateQuadtree() first.");
+        }
+        this.leafCount = 0;
+        RefreshLeaves(root, maxDepth);
+    }
+
     private void RefreshLeaves(Node node, double threshold) {
         if (node == null) {
             return; 
@@ -218,12 +226,57 @@ public class Quadtree {
         }
     }
 
+    private void RefreshLeaves(Node node, int maxDepth) {
+        if (node == null) {
+            return; 
+        }
+        if (node.children == null) {
+            node.isLeaf = true;
+            leafCount++;
+            return; 
+        }
+        if (node.level == maxDepth) {
+            node.isLeaf = true; 
+            leafCount++;
+            return; 
+        }
+        node.isLeaf = false;
+        for (Node child : node.children) {
+            RefreshLeaves(child, maxDepth); 
+        }
+    }
+
     public void RefreshLeaves() {
         if (root == null) {
             throw new IllegalStateException("Quadtree is not initialized. Please call CreateQuadtree() first.");
         }
         this.leafCount = 0;
         RefreshLeaves(root, threshold); 
+    }
+
+    public BufferedImage[] GetFrames(String extension) {
+        String outputPath = "C:\\Coding\\Java\\frames\\";
+        System.out.println("Starting getting frames");
+
+        BufferedImage[] frames = new BufferedImage[8];
+
+        int maxDepth = Math.min(this.depth, 8);
+
+        for (int i = 0; i < maxDepth; i++) {
+            RefreshLeaves(i);
+            frames[i] = ImageFromQuadtree(extension);
+
+            IOHandler.saveImage(frames[i], outputPath + "frame" + i + "." + extension, extension);
+
+            // Debug
+            if (i == 1) {
+                System.out.println("[GET FRAMES] Frame 1: Node Count: " + nodeCount + ", Depth: " + depth + ", Leaf Count: " + leafCount);
+            } else {
+                System.out.println("[GET FRAMES] Frame " + i + ": Node Count: " + nodeCount + ", Depth: " + depth + ", Leaf Count: " + leafCount);
+            }
+        }
+        
+        return frames;
     }
 
     /**
@@ -510,31 +563,43 @@ public class Quadtree {
     }
 
     public static void main(String[] args) {
-        String filePath = "C:\\Users\\Karol\\ITB\\Teknik-Informatika\\semester_4\\IF2211_StrategiAlgoritma\\Tucil2_13523093_13523112\\test\\tokyo_blurred5.jpg"; // Ganti dengan path gambar yang sesuai
-        File originalImageFile = new File(filePath);
-        String extension = IOHandler.getExtension(filePath);
-        double targetCompressionPercentage = 50.0;
+        // String filePath = "C:\\Users\\Karol\\ITB\\Teknik-Informatika\\semester_4\\IF2211_StrategiAlgoritma\\Tucil2_13523093_13523112\\test\\tokyo_blurred5.jpg"; // Ganti dengan path gambar yang sesuai
+        // File originalImageFile = new File(filePath);
+        // String extension = IOHandler.getExtension(filePath);
+        // double targetCompressionPercentage = 50.0;
 
-        Quadtree qt = Quadtree.TargetedPercentageCompress(originalImageFile, targetCompressionPercentage, extension, true);
-        BufferedImage compressedImage = qt.ImageFromQuadtree(extension);
+        // Quadtree qt = Quadtree.TargetedPercentageCompress(originalImageFile, targetCompressionPercentage, extension, true);
+        // BufferedImage compressedImage = qt.ImageFromQuadtree(extension);
         
-        // Save file 
-        String outputPath = "C:\\Users\\Karol\\ITB\\Teknik-Informatika\\semester_4\\IF2211_StrategiAlgoritma\\Tucil2_13523093_13523112\\test\\";
-        String fileName = "compressed_image";
+        // // Save file 
+        // String outputPath = "C:\\Users\\Karol\\ITB\\Teknik-Informatika\\semester_4\\IF2211_StrategiAlgoritma\\Tucil2_13523093_13523112\\test\\";
+        // String fileName = "compressed_image";
 
-        String outputFilePath = outputPath + fileName + "." + extension;
-        File outputFile = new File(outputFilePath);
-        try {
-            ImageIO.write(compressedImage, extension, outputFile);
-            System.out.println("Compressed image saved at: " + outputFile.getAbsolutePath());
-        } catch (Exception e) {
-            System.err.println("Error saving compressed image: " + e.getMessage());
-        }
-        System.out.println("Original file size: " + originalImageFile.length() + " bytes");
-        System.out.println("Compressed file size: " + outputFile.length() + " bytes");
-        System.out.println("Compression percentage: " + Quadtree.compressionPercentage(originalImageFile.length(), outputFile.length()) + "%");
-        System.out.println("Node count: " + qt.getNodeCount());
-        System.out.println("Depth: " + qt.getDepth());
-        System.out.println("Leaf count: " + qt.getLeafCount());
+        // String outputFilePath = outputPath + fileName + "." + extension;
+        // File outputFile = new File(outputFilePath);
+        // try {
+        //     ImageIO.write(compressedImage, extension, outputFile);
+        //     System.out.println("Compressed image saved at: " + outputFile.getAbsolutePath());
+        // } catch (Exception e) {
+        //     System.err.println("Error saving compressed image: " + e.getMessage());
+        // }
+        // System.out.println("Original file size: " + originalImageFile.length() + " bytes");
+        // System.out.println("Compressed file size: " + outputFile.length() + " bytes");
+        // System.out.println("Compression percentage: " + Quadtree.compressionPercentage(originalImageFile.length(), outputFile.length()) + "%");
+        // System.out.println("Node count: " + qt.getNodeCount());
+        // System.out.println("Depth: " + qt.getDepth());
+        // System.out.println("Leaf count: " + qt.getLeafCount());
+
+        String filePath = "C:\\Coding\\Java\\Tucil2_13523093_13523112\\test\\flo.jpg";
+        String extension = IOHandler.getExtension(filePath);
+
+        Quadtree qt = new Quadtree();
+        qt.CreateQuadtree(IOHandler.getImage(filePath), "variance");
+
+        BufferedImage frames[] = qt.GetFrames(extension);
+
+        String outputPath = "C:\\Coding\\Java\\frames\\";
+        String fileName = "testgif";
+        IOHandler.createGIF(frames, outputPath, fileName);
     }
 }

@@ -4,8 +4,17 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Scanner;
 
+import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageTypeSpecifier;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.metadata.IIOInvalidTreeException;
+import javax.imageio.metadata.IIOMetadata;
+import javax.imageio.metadata.IIOMetadataNode;
+import javax.imageio.stream.ImageOutputStream;
 
+import org.w3c.dom.NodeList;
 public class IOHandler {
     
     private static Scanner scanner = new Scanner(System.in);
@@ -69,12 +78,85 @@ public class IOHandler {
         while (filePath.exists() || fileName.equals("")) {
             System.out.println("File sudah ada atau masukan tidak valid. Silakan coba lagi.");
             System.out.print("Masukkan nama file (tanpa ekstensi): ");
-            fileName = scanner.nextLine();
+            fileName = scanner.nextLine().replaceAll("^['\"]+|['\"]+$", "");
             filePath = new File(outputPath, fileName + "." + extension);
         }
         
         return fileName;
     }
+
+    // Membuat GIF dari array BufferedImage
+    public static void createGIF(BufferedImage[] frames, String outputPath, String fileName) {
+        try {
+            ImageWriter writer = ImageIO.getImageWritersByFormatName("gif").next();
+            ImageOutputStream ios = ImageIO.createImageOutputStream(new File(outputPath, fileName + ".gif"));
+            writer.setOutput(ios);
+            
+            writer.prepareWriteSequence(null);
+
+            int delayTime = 100; 
+            for (BufferedImage frame : frames) {
+                ImageWriteParam params = writer.getDefaultWriteParam();
+                IIOMetadata metadata = writer.getDefaultImageMetadata(new ImageTypeSpecifier(frame), params);
+                metadata = setFrameMetadata(metadata, delayTime);
+                IIOImage tempFrame = new IIOImage(frame, null, metadata);
+                writer.writeToSequence(tempFrame, params);
+            }
+
+            writer.endWriteSequence();
+            ios.close();
+            writer.dispose();
+
+        } catch (IOException e) {
+            System.err.println("Error creating GIF: " + e.getMessage());
+        }
+    }
+
+    public static IIOMetadata setFrameMetadata(IIOMetadata metadata, int delayTime) throws IIOInvalidTreeException {
+        String metaFormatName = metadata.getNativeMetadataFormatName();
+        IIOMetadataNode root = (IIOMetadataNode) metadata.getAsTree(metaFormatName);
+    
+        // Graphics Control Extension Node
+        IIOMetadataNode graphicsControlExtensionNode = getNode(root, "GraphicControlExtension");
+        if (graphicsControlExtensionNode == null) {
+            graphicsControlExtensionNode = new IIOMetadataNode("GraphicControlExtension");
+            root.appendChild(graphicsControlExtensionNode);
+        }
+        graphicsControlExtensionNode.setAttribute("disposalMethod", "none");
+        graphicsControlExtensionNode.setAttribute("userInputFlag", "FALSE");
+        graphicsControlExtensionNode.setAttribute("transparentColorFlag", "FALSE");
+        graphicsControlExtensionNode.setAttribute("delayTime", Integer.toString(delayTime)); // set delay time here
+        graphicsControlExtensionNode.setAttribute("transparentColorIndex", "0");
+    
+        // Application Extensions Node (loop forever)
+        IIOMetadataNode appExtensionsNode = getNode(root, "ApplicationExtensions");
+        if (appExtensionsNode == null) {
+            appExtensionsNode = new IIOMetadataNode("ApplicationExtensions");
+            root.appendChild(appExtensionsNode);
+        }
+    
+        IIOMetadataNode appExtension = new IIOMetadataNode("ApplicationExtension");
+        appExtension.setAttribute("applicationID", "NETSCAPE");
+        appExtension.setAttribute("authenticationCode", "2.0");
+    
+        // Loop indefinitely
+        byte[] appExtensionBytes = new byte[] { 0x1, 0x0, 0x0 };
+        appExtension.setUserObject(appExtensionBytes);
+        appExtensionsNode.appendChild(appExtension);
+    
+        metadata.setFromTree(metaFormatName, root);
+        return metadata;
+    }
+
+    private static IIOMetadataNode getNode(IIOMetadataNode root, String nodeName) {
+        NodeList nodeList = root.getElementsByTagName(nodeName);
+        if (nodeList.getLength() > 0) {
+            return (IIOMetadataNode) nodeList.item(0);
+        }
+
+        return null; 
+    } 
+
 
     // Dapatkan image data dalam bentuk array 3D
     // Array: [x][y][arrRGB]
