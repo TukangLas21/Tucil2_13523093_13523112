@@ -59,12 +59,48 @@ public class IOHandler {
             // Save the image
             boolean isSaved = ImageIO.write(image, extension, outputFile);
             if (isSaved) {
-                System.out.println("Image saved successfully at: " + outputFile.getAbsolutePath());
+                System.out.println("Gambar kompresi berhasil disimpan di " + outputFile.getAbsolutePath());
             } else {
                 System.err.println("Error saving image.");
             }
         } catch (IOException e) {
             System.err.println("Error saving image: " + e.getMessage());
+        }
+    }
+
+    // Mendapatkan dan validasi input output path
+    public static String getOutputPath() {
+        System.out.print("Silakan masukkan alamat absolut output (tanpa nama): ");
+        String outputPath = scanner.nextLine().replaceAll("^['\"]+|['\"]+$", "");
+
+        while (true) { 
+            File path = new File(outputPath);
+
+            if (path.exists() && path.isDirectory()) {
+                return outputPath;
+            } else {
+                System.out.println("Alamat yang dimasukkan tidak valid.");
+                System.out.print("Silakan masukkan alamat absolut output (tanpa nama): ");
+                outputPath = scanner.nextLine().replaceAll("^['\"]+|['\"]+$", "");
+            }
+        }
+    }
+
+    // Mendapatkan dan validasi input path GIF
+    public static String getPathGIF() {
+        System.out.print("Silakan masukkan alamat GIF absolut (tanpa nama file): ");
+        String gifPath = scanner.nextLine().replaceAll("^['\"]+|['\"]+$", "");
+
+        while (true) { 
+            File path = new File(gifPath);
+
+            if (path.exists() && path.isDirectory()) {
+                return gifPath;
+            } else {
+                System.out.println("Alamat yang dimasukkan tidak valid.");
+                System.out.print("Silakan masukkan alamat GIF absolut (tanpa nama file): ");
+                gifPath = scanner.nextLine().replaceAll("^['\"]+|['\"]+$", "");
+            }
         }
     }
 

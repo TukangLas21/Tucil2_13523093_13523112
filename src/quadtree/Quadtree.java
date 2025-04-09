@@ -255,28 +255,24 @@ public class Quadtree {
     }
 
     public BufferedImage[] GetFrames(String extension) {
-        String outputPath = "C:\\Coding\\Java\\frames\\";
-        System.out.println("Starting getting frames");
-
-        BufferedImage[] frames = new BufferedImage[8];
-
-        int maxDepth = Math.min(this.depth, 8);
-
-        for (int i = 0; i < maxDepth; i++) {
-            RefreshLeaves(i);
-            frames[i] = ImageFromQuadtree(extension);
-
-            IOHandler.saveImage(frames[i], outputPath + "frame" + i + "." + extension, extension);
-
-            // Debug
-            if (i == 1) {
-                System.out.println("[GET FRAMES] Frame 1: Node Count: " + nodeCount + ", Depth: " + depth + ", Leaf Count: " + leafCount);
-            } else {
-                System.out.println("[GET FRAMES] Frame " + i + ": Node Count: " + nodeCount + ", Depth: " + depth + ", Leaf Count: " + leafCount);
+        int maxDepth = 8;
+        if (this.depth < maxDepth) {
+            BufferedImage[] frames = new BufferedImage[this.depth + 1];
+            for (int i = 0; i <= this.depth; i++) {
+                RefreshLeaves(i);
+                frames[i] = ImageFromQuadtree(extension);
             }
+            return frames;
+
+        } else {
+            BufferedImage[] frames = new BufferedImage[maxDepth];
+            for (int i = 0; i < maxDepth-1; i++) {
+                RefreshLeaves(i);
+                frames[i] = ImageFromQuadtree(extension);
+            }
+            frames[7] = ImageFromQuadtree(extension); // Set the last frame to the maximum depth image
+            return frames;
         }
-        
-        return frames;
     }
 
     /**
