@@ -106,7 +106,7 @@ public class Quadtree {
 
         // Verbose output for debugging
         if (verbose) {
-            if (level < 5) System.out.println("[BUILDING QUADTREE] ID " + verboseCount++ + "/341: Node Count: " + nodeCount + ", Depth: " + depth + ", Level: " + level + ", Error: " + node.error);
+            if (level < 5) System.out.println("[BUILDING QUADTREE] ID " + verboseCount++ + ": Node Count: " + nodeCount + ", Depth: " + depth + ", Level: " + level + ", Error: " + node.error);
         }
 
         int leftHalfWidth = (node.width + 1) / 2;
@@ -222,7 +222,7 @@ public class Quadtree {
         }
         node.isLeaf = false;
         for (Node child : node.children) {
-            RefreshLeaves(child, threshold); 
+            RefreshLeaves(child, threshold);
         }
     }
 
@@ -246,12 +246,22 @@ public class Quadtree {
         }
     }
 
+    public static double MaximumError(String errorMethod) {
+        return switch (errorMethod) {
+            case "variance" -> 16256.25; // Variance threshold for 8-bit color depth (255^2 / 4)
+            case "mad" -> 127.5; // Maximum absolute difference for 8-bit color depth (255 / 2)
+            case "mpd" -> 255; // Maximum possible difference for 8-bit color depth (255 - 0)
+            case "entropy" -> 8.0; // Maximum entropy for 8-bit color depth (log2(256))
+            default -> throw new IllegalArgumentException("Invalid error method: " + errorMethod);
+        };
+    }
+
     public void RefreshLeaves() {
         if (root == null) {
             throw new IllegalStateException("Quadtree is not initialized. Please call CreateQuadtree() first.");
         }
         this.leafCount = 0;
-        RefreshLeaves(root, threshold); 
+        RefreshLeaves(root, threshold);
     }
 
     public BufferedImage[] GetFrames(String extension) {
@@ -283,7 +293,7 @@ public class Quadtree {
      * @param errorMethod
      * @return
      */
-    public static Quadtree TargetedPercentageCompress(File originalImageFile, double targetCompressionPercentage, String extension, boolean verbose) {
+    public static Quadtree TargetedPercentageCompress(File originalImageFile, double targetCompressionPercentage, String errorMethod, double maxThresh, String extension, boolean verbose) {
         if (targetCompressionPercentage < 0 || targetCompressionPercentage > 100) {
             throw new IllegalArgumentException("Target compression percentage must be between 0 and 100.");
         }
@@ -311,13 +321,13 @@ public class Quadtree {
         long originalFileSize = originalImageFile.length();
 
         // Initialize quadtree parameters
-        double upper = 255 * 255 / 4;
+        // double upper = 255 * 255 / 4;
+        double upper = maxThresh;
         double lower = 0;
         double mid = (upper + lower) / 2;
         double tolerance = 1; // Tolerance for binary search
         double stoppingThreshold = 0.5; // Stopping threshold for binary search
         int maxStoppingThresholdCount = 5;
-        String errorMethod = "variance";
         
         int stoppingThresholdCount = maxStoppingThresholdCount;
         int iteration = 1;
@@ -343,7 +353,7 @@ public class Quadtree {
 
             // Verbose
             if (verbose) {
-                System.out.println("[TARGETED COMPRESSION] Iteration " + iteration + ": Compression percentage: " + percent + "%, Target: " + targetCompressionPercentage + "%, File size: " + compressedFileSize + " bytes");
+                System.out.println("[TARGETED COMPRESSION] Iteration " + iteration + ": Compression percentage: " + percent + "%, Target: " + targetCompressionPercentage + "%, File size: " + compressedFileSize + " bytes, Threshold: " + mid);
             }
             iteration++;
 
@@ -405,6 +415,7 @@ public class Quadtree {
             case "entropy" -> error = calcEntropy(x, y, width, height);
             // case "ssim" -> error = calcSSIM(x, y, width, height);
             default -> {
+                throw new IllegalArgumentException("Invalid error method: " + method);
             }
         }
         return error;
