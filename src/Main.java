@@ -184,14 +184,42 @@ public class Main {
             }
 
             // Proses + catat waktu
-            long startTime = System.currentTimeMillis();
-            Quadtree quadtree = new Quadtree();
+            long startTime;
+            Quadtree quadtree;
             if (targetPercent == 0.0) {
+                startTime = System.currentTimeMillis();
                 quadtree = new Quadtree(threshold, minBlockSize);
+                System.out.println("Mengompresi gambar dengan metode " + errorMethod + ", threshold " + threshold + ", dan minimum size " + minBlockSize + ".");
                 quadtree.CreateQuadtree(image, errorMethod);
             } else {
                 File imageFile = new File(filePath);
-                quadtree = Quadtree.TargetedPercentageCompress(imageFile, targetPercent, extension, false);
+                System.out.println("Anda memilih untuk mengompresi gambar dengan target persentase " + targetPercent + "%" + " menggunakan metode " + errorMethod + " dan minimum size " + minBlockSize + ".");
+                System.out.print("Silakan pilih batas atas pencarian threshold. Tekan enter untuk default (" + Quadtree.MaximumError(errorMethod) + "): ");
+                String maxThresholdInput;
+                double maxThreshold = 0;
+                while (true) {
+                    maxThresholdInput = scanner.nextLine();
+                    if (maxThresholdInput.isEmpty()) {
+                        break;
+                    }
+                    try {
+                        maxThreshold = Double.parseDouble(maxThresholdInput);
+                    } catch (NumberFormatException e) {
+                        System.out.println("Ambang batas tidak valid. Silakan coba lagi.");
+                        continue;
+                    }
+                    if (maxThreshold < 0) {
+                        System.out.println("Ambang batas tidak valid. Silakan coba lagi.");
+                        continue;
+                    }
+                    break;
+                }
+                if (maxThresholdInput.isEmpty()) {
+                    maxThreshold = Quadtree.MaximumError(errorMethod);
+                }
+                startTime = System.currentTimeMillis();
+                System.out.println("Mengompresi gambar dengan target persentase " + targetPercent + "%, metode " + errorMethod + ", threshold " + threshold + ", minimum size " + minBlockSize + ", dan batas atas pencarian threshold " + maxThreshold + ".");
+                quadtree = Quadtree.TargetedPercentageCompress(imageFile, targetPercent, errorMethod, maxThreshold, extension, false);
             }
             long endTime = System.currentTimeMillis();
             long runTime = endTime - startTime;

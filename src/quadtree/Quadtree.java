@@ -246,6 +246,16 @@ public class Quadtree {
         }
     }
 
+    public static double MaximumError(String errorMethod) {
+        return switch (errorMethod) {
+            case "variance" -> 16256.25; // Variance threshold for 8-bit color depth (255^2 / 4)
+            case "mad" -> 127.5; // Maximum absolute difference for 8-bit color depth (255 / 2)
+            case "mpd" -> 255; // Maximum possible difference for 8-bit color depth (255 - 0)
+            case "entropy" -> 8.0; // Maximum entropy for 8-bit color depth (log2(256))
+            default -> throw new IllegalArgumentException("Invalid error method: " + errorMethod);
+        };
+    }
+
     public void RefreshLeaves() {
         if (root == null) {
             throw new IllegalStateException("Quadtree is not initialized. Please call CreateQuadtree() first.");
