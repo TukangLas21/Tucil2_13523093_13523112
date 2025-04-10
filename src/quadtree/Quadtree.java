@@ -270,6 +270,7 @@ public class Quadtree {
                 RefreshLeaves(i);
                 frames[i] = ImageFromQuadtree(extension);
             }
+            RefreshLeaves(this.depth);
             frames[7] = ImageFromQuadtree(extension); // Set the last frame to the maximum depth image
             return frames;
         }

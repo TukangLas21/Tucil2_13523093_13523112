@@ -46,7 +46,17 @@ public class Main {
                 System.out.println("4. Entropy");
                 System.out.print("Pilihan: ");
                 String userChoice = scanner.nextLine();
-                int choice = Integer.parseInt(userChoice);
+                if (userChoice.isEmpty()) {
+                    System.out.println("Pilihan tidak valid. Silakan coba lagi.");
+                    continue;
+                }
+                int choice;
+                try {
+                    choice = Integer.parseInt(userChoice);
+                } catch (NumberFormatException e) {
+                    System.out.println("Pilihan tidak valid. Silakan coba lagi.");
+                    continue;
+                }
 
                 if (choice < 1 || choice > 4) {
                     System.out.println("Pilihan tidak valid. Silakan coba lagi.");
@@ -73,14 +83,50 @@ public class Main {
             
             // TODO: verifikasi minimum size dan threshold sesuai dengan metode error yang dipilih
             // Input ambang batas 
-            System.out.print("Silakan masukkan threshold atau ambang batas: ");
-            String thresholdInput = scanner.nextLine();
-            double threshold = Double.parseDouble(thresholdInput); 
+            String thresholdInput = "";
+            double threshold = 0;
+            while (true) {
+                System.out.print("Silakan masukkan ambang batas: ");
+                thresholdInput = scanner.nextLine();
+                if (thresholdInput.isEmpty()) {
+                    System.out.println("Ambang batas tidak valid. Silakan coba lagi.");
+                    continue;
+                }
+                try {
+                    threshold = Double.parseDouble(thresholdInput);
+                } catch (NumberFormatException e) {
+                    System.out.println("Ambang batas tidak valid. Silakan coba lagi.");
+                    continue;
+                }
+                if (threshold < 0) {
+                    System.out.println("Ambang batas tidak valid. Silakan coba lagi.");
+                    continue;
+                }
+                break;
+            }
 
             // Input ukuran blok minimum 
-            System.out.print("Silakan masukkan ukuran blok minimum: ");
-            String minBlockSizeInput = scanner.nextLine();
-            int minBlockSize = Integer.parseInt(minBlockSizeInput);
+            String minBlockSizeInput = "";
+            int minBlockSize = 0;
+            while (true) {
+                System.out.print("Silakan masukkan ukuran blok minimum: ");
+                minBlockSizeInput = scanner.nextLine();
+                if (minBlockSizeInput.isEmpty()) {
+                    System.out.println("Ukuran blok minimum tidak valid. Silakan coba lagi.");
+                    continue;
+                }
+                try {
+                    minBlockSize = Integer.parseInt(minBlockSizeInput);
+                } catch (NumberFormatException e) {
+                    System.out.println("Ukuran blok minimum tidak valid. Silakan coba lagi.");
+                    continue;
+                }
+                if (minBlockSize < 1) {
+                    System.out.println("Ukuran blok minimum tidak valid. Silakan coba lagi.");
+                    continue;
+                }
+                break;
+            }
 
             // Input target kompresi
             String targetKompresi = "";
@@ -88,7 +134,16 @@ public class Main {
             while (true) { 
                 System.out.print("Silakan masukkan persentase kompresi (0..1): ");
                 targetKompresi = scanner.nextLine();
-                targetPercent = Double.parseDouble(targetKompresi);
+                if (targetKompresi.isEmpty()) {
+                    System.out.println("Persentase kompresi tidak valid. Silakan coba lagi.");
+                    continue;
+                }
+                try {
+                    targetPercent = Double.parseDouble(targetKompresi);
+                } catch (NumberFormatException e) {
+                    System.out.println("Persentase kompresi tidak valid. Silakan coba lagi.");
+                    continue;
+                }
                 if (targetPercent < 0 || targetPercent > 1) {
                     System.out.println("Masukkan persentase tidak valid. Silakan masukkan dalam bentuk floating number (0..1).");
                 } else {
