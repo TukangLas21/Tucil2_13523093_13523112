@@ -198,6 +198,14 @@ public class Quadtree {
         RefreshLeaves(root, threshold);
     }
 
+    public void RefreshLeaves(int maxDepth) {
+        if (root == null) {
+            throw new IllegalStateException("Quadtree is not initialized. Please call CreateQuadtree() first.");
+        }
+        this.leafCount = 0;
+        RefreshLeaves(root, maxDepth);
+    }
+
     private void RefreshLeaves(Node node, double threshold) {
         if (node == null) {
             return; 
@@ -218,6 +226,26 @@ public class Quadtree {
         }
     }
 
+    private void RefreshLeaves(Node node, int maxDepth) {
+        if (node == null) {
+            return; 
+        }
+        if (node.children == null) {
+            node.isLeaf = true;
+            leafCount++;
+            return; 
+        }
+        if (node.level == maxDepth) {
+            node.isLeaf = true; 
+            leafCount++;
+            return; 
+        }
+        node.isLeaf = false;
+        for (Node child : node.children) {
+            RefreshLeaves(child, maxDepth); 
+        }
+    }
+
     public void RefreshLeaves() {
         if (root == null) {
             throw new IllegalStateException("Quadtree is not initialized. Please call CreateQuadtree() first.");
@@ -226,18 +254,26 @@ public class Quadtree {
         RefreshLeaves(root, threshold);
     }
 
-    public static double MaximumError(String errorMethod) {
-        return switch (errorMethod) {
-            case "variance" -> 16256.25; // Variance threshold for 8-bit color depth (255^2 / 4)
-            case "mad" -> 127.5; // Maximum absolute difference for 8-bit color depth (255 / 2)
-            case "mpd" -> 255; // Maximum possible difference for 8-bit color depth (255 - 0)
-            case "entropy" -> 8.0; // Maximum entropy for 8-bit color depth (log2(256))
-            default -> throw new IllegalArgumentException("Invalid error method: " + errorMethod);
-        };
-    }
+    public BufferedImage[] GetFrames(String extension) {
+        int maxDepth = 8;
+        if (this.depth < maxDepth) {
+            BufferedImage[] frames = new BufferedImage[this.depth + 1];
+            for (int i = 0; i <= this.depth; i++) {
+                RefreshLeaves(i);
+                frames[i] = ImageFromQuadtree(extension);
+            }
+            return frames;
 
-    public static Quadtree TargetedPercentageCompress(File originalImageFile, double targetCompressionPercentage, String errorMethod, String extension, boolean verbose) {
-        return TargetedPercentageCompress(originalImageFile, targetCompressionPercentage, errorMethod, MaximumError(errorMethod), extension, verbose);
+        } else {
+            BufferedImage[] frames = new BufferedImage[maxDepth];
+            for (int i = 0; i < maxDepth-1; i++) {
+                RefreshLeaves(i);
+                frames[i] = ImageFromQuadtree(extension);
+            }
+            RefreshLeaves(this.depth);
+            frames[7] = ImageFromQuadtree(extension); // Set the last frame to the maximum depth image
+            return frames;
+        }
     }
 
     /**
@@ -525,35 +561,43 @@ public class Quadtree {
     }
 
     public static void main(String[] args) {
-        String filePath = "C:\\Users\\Karol\\ITB\\Teknik-Informatika\\semester_4\\IF2211_StrategiAlgoritma\\Tucil2_13523093_13523112\\test\\tokyo_blurred5.jpg"; // Ganti dengan path gambar yang sesuai
-        File originalImageFile = new File(filePath);
-        String extension = IOHandler.getExtension(filePath);
-        double targetCompressionPercentage = 50.0;
+        // String filePath = "C:\\Users\\Karol\\ITB\\Teknik-Informatika\\semester_4\\IF2211_StrategiAlgoritma\\Tucil2_13523093_13523112\\test\\tokyo_blurred5.jpg"; // Ganti dengan path gambar yang sesuai
+        // File originalImageFile = new File(filePath);
+        // String extension = IOHandler.getExtension(filePath);
+        // double targetCompressionPercentage = 50.0;
 
-        double maxThresh = 4000;
-        String errorMethod = "variance"; // Variance, mad, mpd, entropy
-        Quadtree qt = Quadtree.TargetedPercentageCompress(originalImageFile, targetCompressionPercentage, errorMethod, extension, true);
-        BufferedImage compressedImage = qt.ImageFromQuadtree(extension);
+        // Quadtree qt = Quadtree.TargetedPercentageCompress(originalImageFile, targetCompressionPercentage, extension, true);
+        // BufferedImage compressedImage = qt.ImageFromQuadtree(extension);
         
-        // Save file 
-        String outputPath = "C:\\Users\\Karol\\ITB\\Teknik-Informatika\\semester_4\\IF2211_StrategiAlgoritma\\Tucil2_13523093_13523112\\test\\";
-        String fileName = "compressed_image";
+        // // Save file 
+        // String outputPath = "C:\\Users\\Karol\\ITB\\Teknik-Informatika\\semester_4\\IF2211_StrategiAlgoritma\\Tucil2_13523093_13523112\\test\\";
+        // String fileName = "compressed_image";
 
-        String outputFilePath = outputPath + fileName + "." + extension;
-        File outputFile = new File(outputFilePath);
-        try {
-            ImageIO.write(compressedImage, extension, outputFile);
-            System.out.println("Compressed image saved at: " + outputFile.getAbsolutePath());
-        } catch (Exception e) {
-            System.err.println("Error saving compressed image: " + e.getMessage());
-        }
-        System.out.println("Original file size: " + originalImageFile.length() + " bytes");
-        System.out.println("Compressed file size: " + outputFile.length() + " bytes");
-        System.out.println("Compression percentage: " + Quadtree.compressionPercentage(originalImageFile.length(), outputFile.length()) + "%");
-        System.out.println("Node count: " + qt.getNodeCount());
-        System.out.println("Depth: " + qt.getDepth());
-        System.out.println("Leaf count: " + qt.getLeafCount());
-        System.out.println("Threshold: " + qt.threshold);
-        System.out.println("Max threshold: " + MaximumError(errorMethod));
+        // String outputFilePath = outputPath + fileName + "." + extension;
+        // File outputFile = new File(outputFilePath);
+        // try {
+        //     ImageIO.write(compressedImage, extension, outputFile);
+        //     System.out.println("Compressed image saved at: " + outputFile.getAbsolutePath());
+        // } catch (Exception e) {
+        //     System.err.println("Error saving compressed image: " + e.getMessage());
+        // }
+        // System.out.println("Original file size: " + originalImageFile.length() + " bytes");
+        // System.out.println("Compressed file size: " + outputFile.length() + " bytes");
+        // System.out.println("Compression percentage: " + Quadtree.compressionPercentage(originalImageFile.length(), outputFile.length()) + "%");
+        // System.out.println("Node count: " + qt.getNodeCount());
+        // System.out.println("Depth: " + qt.getDepth());
+        // System.out.println("Leaf count: " + qt.getLeafCount());
+
+        String filePath = "C:\\Coding\\Java\\Tucil2_13523093_13523112\\test\\flo.jpg";
+        String extension = IOHandler.getExtension(filePath);
+
+        Quadtree qt = new Quadtree();
+        qt.CreateQuadtree(IOHandler.getImage(filePath), "variance");
+
+        BufferedImage frames[] = qt.GetFrames(extension);
+
+        String outputPath = "C:\\Coding\\Java\\frames\\";
+        String fileName = "testgif";
+        IOHandler.createGIF(frames, outputPath, fileName);
     }
 }
