@@ -21,6 +21,23 @@ Program perlu dikompilasi dulu sebelum dijalankan. Silakan menjalankan perintah 
 javac -d bin src/quadtree/*.java src/Main.java
 java -cp bin Main
 ```
+Setelah program berjalan, masukkan input sesuai dengan yang diminta program.
+Input yang diminta meliputi:
+1. Alamat absolute dari file gambar yang ingin dikompresi
+2. Indeks metode perhitungan error yang ingin digunakan:
+    - 1. Variansi
+    - 2. Mean Absolute Difference
+    - 3. Max Pixel Difference
+    - 4. Entropi
+3. Threshold error
+4. Ukuran minimum blok
+5. Target kompresi (0 untuk menonaktifkan)
+6. Alamat folder untuk menyimpan gambar hasil kompresi
+7. Nama file gambar hasil kompresi
+8. Apakah ingin membuat GIF (Y/N)
+9. Alamat folder untuk menyimpan GIF (opsional)
+10. Nama file GIF (opsional)
+11. Batas atas pencarian threshold untuk target kompresi (opsional)
 
 ## Laporan
 [Google Docs Laporan](https://docs.google.com/document/d/1DCzy2bY037Ounp9AMHOxyg9fs--8FGSJflN1tjw2ET8/edit?usp=sharing)

@@ -130,20 +130,20 @@ public class Main {
             String targetKompresi = "";
             double targetPercent = 0;
             while (true) { 
-                System.out.print("Silakan masukkan persentase kompresi (0..1): ");
+                System.out.print("Silakan masukkan target kompresi (0..1): ");
                 targetKompresi = scanner.nextLine();
                 if (targetKompresi.isEmpty()) {
-                    System.out.println("Persentase kompresi tidak valid. Silakan coba lagi.");
+                    System.out.println("Target kompresi tidak valid. Silakan coba lagi.");
                     continue;
                 }
                 try {
                     targetPercent = Double.parseDouble(targetKompresi);
                 } catch (NumberFormatException e) {
-                    System.out.println("Persentase kompresi tidak valid. Silakan coba lagi.");
+                    System.out.println("Target kompresi tidak valid. Silakan coba lagi.");
                     continue;
                 }
                 if (targetPercent < 0 || targetPercent > 1) {
-                    System.out.println("Masukkan persentase tidak valid. Silakan masukkan dalam bentuk floating number (0..1).");
+                    System.out.println("Masukkan target tidak valid. Silakan masukkan dalam bentuk floating number (0..1).");
                 } else {
                     break;
                 }
