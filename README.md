@@ -25,10 +25,10 @@ Setelah program berjalan, masukkan input sesuai dengan yang diminta program.
 Input yang diminta meliputi:
 - Alamat absolute dari file gambar yang ingin dikompresi
 - Indeks metode perhitungan error yang ingin digunakan:
-  1. Variansi
-  2. Mean Absolute Difference
-  3. Max Pixel Difference
-  4. Entropi
+1. Variansi
+2. Mean Absolute Difference
+3. Max Pixel Difference
+4. Entropi
 - Threshold error
 - Ukuran minimum blok
 - Target kompresi (0 untuk menonaktifkan)
