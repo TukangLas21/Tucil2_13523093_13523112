@@ -1,5 +1,5 @@
 # Kompresi Gambar dengan Metode Quadtree - Tugas Kecil 2 IF2211 Strategi Algoritma
-![](demo.gif)
+<img src="demo.gif" alt="demo animation" width="350">
 
 ## Deskripsi Singkat
 Kompresi gambar merupakan suatu proses untuk mengurangi ukuran suatu file gambar tanpa mengurangi kualitas citranya secara signifikan. Salah satu cara yang dapat digunakan untuk melakukan kompresi gambar adalah dengan memanfaatkan struktur data Quadtree. Quadtree sendiri merupakan sebuah struktur data pohon atau _tree_ yang setiap simpulnya memiliki 4 simpul anak. Quadtree dapat digunakan untuk menyederhanakan piksel-piksel pada citra menjadi warna yang sama sehingga mengurangi jumlah data yang diperlukan. <br>
