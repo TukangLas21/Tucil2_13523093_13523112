@@ -1,4 +1,5 @@
 # Kompresi Gambar dengan Metode Quadtree - Tugas Kecil 2 IF2211 Strategi Algoritma
+![](demo.gif)
 
 ## Deskripsi Singkat
 Kompresi gambar merupakan suatu proses untuk mengurangi ukuran suatu file gambar tanpa mengurangi kualitas citranya secara signifikan. Salah satu cara yang dapat digunakan untuk melakukan kompresi gambar adalah dengan memanfaatkan struktur data Quadtree. Quadtree sendiri merupakan sebuah struktur data pohon atau _tree_ yang setiap simpulnya memiliki 4 simpul anak. Quadtree dapat digunakan untuk menyederhanakan piksel-piksel pada citra menjadi warna yang sama sehingga mengurangi jumlah data yang diperlukan. <br>
@@ -20,6 +21,9 @@ Program perlu dikompilasi dulu sebelum dijalankan. Silakan menjalankan perintah 
 javac -d bin src/quadtree/*.java src/Main.java
 java -cp bin Main
 ```
+
+## Laporan
+[Google Docs Laporan](https://docs.google.com/document/d/1DCzy2bY037Ounp9AMHOxyg9fs--8FGSJflN1tjw2ET8/edit?usp=sharing)
 
 ## Berkontribusi
 Silakan fork repositori ini jika Anda ingin melakukan perubahan apapun. 
