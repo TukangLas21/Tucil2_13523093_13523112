@@ -1,0 +1,10 @@
+# Ignore Java bytecode files in the bin directory
+bin/**/*.class
+
+# General ignores
+*.log
+.DS_Store
+.idea/
+.vscode/
+out/
+target/
