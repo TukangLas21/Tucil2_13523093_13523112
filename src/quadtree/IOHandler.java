@@ -130,8 +130,10 @@ public class IOHandler {
             
             writer.prepareWriteSequence(null);
 
-            int delayTime = 100; 
-            for (BufferedImage frame : frames) {
+            int delayTime = 100; // Jeda waktu setiap frame 1 detik
+
+            // Write frame ke dalam GIF
+            for (BufferedImage frame : frames) { 
                 ImageWriteParam params = writer.getDefaultWriteParam();
                 IIOMetadata metadata = writer.getDefaultImageMetadata(new ImageTypeSpecifier(frame), params);
                 metadata = setFrameMetadata(metadata, delayTime);
@@ -152,30 +154,35 @@ public class IOHandler {
         String metaFormatName = metadata.getNativeMetadataFormatName();
         IIOMetadataNode root = (IIOMetadataNode) metadata.getAsTree(metaFormatName);
     
-        // Graphics Control Extension Node
+        // Node Graphic Control Extension
         IIOMetadataNode graphicsControlExtensionNode = getNode(root, "GraphicControlExtension");
         if (graphicsControlExtensionNode == null) {
             graphicsControlExtensionNode = new IIOMetadataNode("GraphicControlExtension");
             root.appendChild(graphicsControlExtensionNode);
         }
+
+        // Set attribute untuk node GraphicControlExtension secara manual
         graphicsControlExtensionNode.setAttribute("disposalMethod", "none");
         graphicsControlExtensionNode.setAttribute("userInputFlag", "FALSE");
         graphicsControlExtensionNode.setAttribute("transparentColorFlag", "FALSE");
         graphicsControlExtensionNode.setAttribute("delayTime", Integer.toString(delayTime)); // set delay time here
         graphicsControlExtensionNode.setAttribute("transparentColorIndex", "0");
     
-        // Application Extensions Node (loop forever)
+        // Node Application Extensions
         IIOMetadataNode appExtensionsNode = getNode(root, "ApplicationExtensions");
-        if (appExtensionsNode == null) {
+
+        if (appExtensionsNode == null) { // Jika tidak ada, dibuat node baru
             appExtensionsNode = new IIOMetadataNode("ApplicationExtensions");
             root.appendChild(appExtensionsNode);
         }
     
         IIOMetadataNode appExtension = new IIOMetadataNode("ApplicationExtension");
+
+        // Set attribute untuk node ApplicationExtension
         appExtension.setAttribute("applicationID", "NETSCAPE");
         appExtension.setAttribute("authenticationCode", "2.0");
     
-        // Loop indefinitely
+        // Loop selamanya
         byte[] appExtensionBytes = new byte[] { 0x1, 0x0, 0x0 };
         appExtension.setUserObject(appExtensionBytes);
         appExtensionsNode.appendChild(appExtension);
@@ -185,12 +192,11 @@ public class IOHandler {
     }
 
     private static IIOMetadataNode getNode(IIOMetadataNode root, String nodeName) {
-        NodeList nodeList = root.getElementsByTagName(nodeName);
+        NodeList nodeList = root.getElementsByTagName(nodeName); // Mencari node yang sesuai
         if (nodeList.getLength() > 0) {
             return (IIOMetadataNode) nodeList.item(0);
         }
-
-        return null; 
+        return null; // Mengembalikan null jika tidak ada
     } 
 
 

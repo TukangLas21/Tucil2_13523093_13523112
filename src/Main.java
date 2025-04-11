@@ -18,7 +18,6 @@ public class Main {
         while (true) { 
             
             // Inputs
-            // General TODO: Verifikasi input
             // Input alamat absolut gambar
             System.out.print("Silakan masukkan alamat gambar, gunakan \"/\" sebagai seperator: ");
             String filePath = scanner.nextLine().replaceAll("^['\"]+|['\"]+$", "");
@@ -81,7 +80,6 @@ public class Main {
                 break;
             }
             
-            // TODO: verifikasi minimum size dan threshold sesuai dengan metode error yang dipilih
             // Input ambang batas 
             String thresholdInput = "";
             double threshold = 0;

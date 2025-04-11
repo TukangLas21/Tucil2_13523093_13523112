@@ -432,7 +432,6 @@ public class Quadtree {
     }
     
     // Mendapatkan nilai rata-rata setiap kanal
-    // TODO: optimasi menggunakan matriks nilai integral (mendapatkan nilai mean menjadi O(1) untuk tiap iterasi)
     public double getAverage(int x, int y, int width, int height, String channel) {
         double sum = 0;
         for (int j = y; j < y + height; j++) {
@@ -451,7 +450,6 @@ public class Quadtree {
 
 
     // Mendapatkan nilai variansi setiap kanal warna
-    // TODO: optimasi menggunakan matriks nilai integral (mendapatkan nilai mean menjadi O(1) untuk tiap iterasi)
     public double getVariance(int x, int y, int width, int height, String channel) {
         double avg = getAverage(x, y, width, height, channel);
         double sum = 0;
@@ -479,7 +477,6 @@ public class Quadtree {
     }
 
     // Mendapatkan nilai MAD setiap kanal warna
-    // TODO: optimasi menggunakan matriks nilai integral (mendapatkan nilai mean menjadi O(1) untuk tiap iterasi)
     public double getMAD(int x, int y, int width, int height, String channel) {
         double avg = getAverage(x, y, width, height, channel);
         double sum = 0;
@@ -506,7 +503,6 @@ public class Quadtree {
         return (mpdRed + mpdGreen + mpdBlue) / 3.0;
     }
 
-    // TODO: optimasi menggunakan quadtree untuk menghitung min dan max tiap blok (O(n^2))
     public double getMPD(int x, int y, int width, int height, String channel) {
         int min = Integer.MAX_VALUE;
         int max = Integer.MIN_VALUE;
