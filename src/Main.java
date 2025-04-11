@@ -84,7 +84,7 @@ public class Main {
             String thresholdInput = "";
             double threshold = 0;
             while (true) {
-                System.out.print("Silakan masukkan ambang batas: ");
+                System.out.print("Silakan masukkan ambang batas (max: " + Quadtree.MaximumError(errorMethod) + "): ");
                 thresholdInput = scanner.nextLine();
                 if (thresholdInput.isEmpty()) {
                     System.out.println("Ambang batas tidak valid. Silakan coba lagi.");
@@ -96,7 +96,7 @@ public class Main {
                     System.out.println("Ambang batas tidak valid. Silakan coba lagi.");
                     continue;
                 }
-                if (threshold < 0) {
+                if (threshold < 0 || threshold > Quadtree.MaximumError(errorMethod)) {
                     System.out.println("Ambang batas tidak valid. Silakan coba lagi.");
                     continue;
                 }
